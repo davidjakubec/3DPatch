@@ -115,7 +115,7 @@ function phmmerCallback(request) {
             phmmerFinalAlignmentString += name + " " + seq + "\n";	// align seq strings ?
         }
 //        console.log(phmmerFinalAlignmentString);
-        hmmerRequest("hmmsearch", phmmerFinalAlignmentString, "pdb", hmmsearchCallback);
+        hmmerRequest("hmmsearch", phmmerFinalAlignmentString, "pdb", hmmsearchCallback);	// 500 if phmmer against uniprotrefprot
         var phmmerFinalAlignmentStringBlob = new Blob([phmmerFinalAlignmentString], {type: "text/plain"});
         skylignRequest("observed", phmmerFinalAlignmentStringBlob, skylignCallback);
     }
