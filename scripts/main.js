@@ -17,7 +17,7 @@ function phmmerCallback(request) {
         console.log(responseURL);
         var hits = JSON.parse(request.response)["results"]["hits"];	// filter by evalue ?
 //        console.log(hits);
-        var modelLength = hits[0]["domains"][0]["aliM"];
+        var modelLength = hits[0]["domains"][0]["aliM"];	// fails here if no hits
 //        console.log(modelLength);
         var phmmerWorkAlignment = [];
         for (var i = 0; i < hits.length; i += 1) {
