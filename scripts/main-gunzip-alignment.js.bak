@@ -1,12 +1,13 @@
-function phmmerRequest(seq, seqdb, callback) {
-    var url = "https://www.ebi.ac.uk/Tools/hmmer/search/phmmer";
+function hmmerRequest(algo, seq, seqdb, callback) {
+    var url = "https://www.ebi.ac.uk/Tools/hmmer/search/" + algo;
     var data = new FormData();
-    data.append("algo", "phmmer");
+    data.append("algo", algo);
     data.append("seq", seq);
     data.append("seqdb", seqdb);
     var request = new XMLHttpRequest();
     request.open("POST", url, true);
-    request.setRequestHeader("Accept", "text/html");
+    request.setRequestHeader("Accept", "application/json");
+//    request.setRequestHeader("Accept", "text/html");
     request.onreadystatechange = callback.bind(this, request);
     request.send(data);
 }
@@ -15,45 +16,39 @@ function phmmerCallback(request) {
     if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 200)) {
         var responseURL = request.responseURL;
         console.log(responseURL);
-        hmmsearchRequest(responseURL, hmmsearchCallback);
+        phmmerAlignmentRequest(responseURL, phmmerAlignmentCallback);
     }
 }
 
-function hmmsearchRequest(resultsURL, callback) {
-    var jobID = resultsURL.split("/")[6];
-    var url = "https://www.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
-    var data = new FormData();
-    data.append("algo", "hmmsearch");
-    data.append("seqdb", "pdb");
+function phmmerAlignmentRequest(resultsURL, callback) {
+    var url = resultsURL.replace("results", "download") + "?format=stockholm";
     var request = new XMLHttpRequest();
-    request.open("POST", url, true);
-//    request.setRequestHeader("Accept", "application/json");
-    request.setRequestHeader("Accept", "text/html");
-    request.onreadystatechange = callback.bind(this, request);
-    request.send(data);
+    request.open("GET", url, true);
+    request.responseType = "arraybuffer";
+    request.setRequestHeader("Accept", "x-application/x-gzip");
+    request.onload = callback.bind(this, request);
+    request.send(null);	// max 10k seqs
+}
+
+function phmmerAlignmentCallback(request) {
+    var uint8 = new Uint8Array(request.response);
+    var gunzip = new Zlib.Gunzip(uint8);
+    var charCodes = gunzip.decompress();
+    var phmmerAlignmentString = "";
+    for (var charCode of charCodes) {
+        phmmerAlignmentString += String.fromCharCode(charCode);
+    }
+//    console.log(phmmerAlignmentString);	// remove header ?
+    hmmerRequest("hmmsearch", phmmerAlignmentString, "pdb", hmmsearchCallback);	// status 500 if phmmer against uniprotrefprot - max ~3MB, 42k lines
+    var phmmerAlignmentStringBlob = new Blob([phmmerAlignmentString], {type: "text/plain"});
+    skylignRequest("observed", phmmerAlignmentStringBlob, skylignCallback);
 }
 
 function hmmsearchCallback(request) {
     if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 200)) {
         var responseURL = request.responseURL;
         console.log(responseURL);
-        phmmerResultsHMMRequest(responseURL, phmmerResultsHMMCallback);
     }
-}
-
-function phmmerResultsHMMRequest(resultsURL, callback) {
-    var url = resultsURL.replace("results", "download") + "?format=hmm";
-    var request = new XMLHttpRequest();
-    request.open("GET", url, true);
-    request.onload = callback.bind(this, request);
-    request.send(null);
-}
-
-function phmmerResultsHMMCallback(request) {
-    var phmmerResultsHMM = request.response;
-//    console.log(phmmerResultsHMM);
-    var phmmerResultsHMMBlob = new Blob([phmmerResultsHMM], {type: "text/plain"});
-    skylignRequest("hmm", phmmerResultsHMMBlob, skylignCallback);
 }
 
 function skylignRequest(processing, file, callback) {
@@ -78,7 +73,7 @@ function skylignCallback(request) {
 document.querySelector("#submitSequenceButton").onclick = function() {
     var sequence = document.querySelector("#sequenceInput").value.toUpperCase();
     console.log(sequence);
-    phmmerRequest(sequence, "uniprotrefprot", phmmerCallback);
+    hmmerRequest("phmmer", sequence, "pdb", phmmerCallback);
 }
 
 // MERKRGRQTYTRYQTLELEKEFHFNRYLTRRRRIEIAHALSLTERQIKIWFQNRRMKWKKEN
