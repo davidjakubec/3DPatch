@@ -1,5 +1,6 @@
 function phmmerRequest(seq, seqdb, callback) {
-    var url = "https://www.ebi.ac.uk/Tools/hmmer/search/phmmer";
+//    var url = "https://www.ebi.ac.uk/Tools/hmmer/search/phmmer";
+    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer/search/phmmer";
     var data = new FormData();
     data.append("algo", "phmmer");
     data.append("seq", seq);
@@ -21,14 +22,15 @@ function phmmerCallback(request) {
 
 function hmmsearchRequest(resultsURL, callback) {
     var jobID = resultsURL.split("/")[6];
-    var url = "https://www.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
+//    var url = "https://www.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
+    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
+//    console.log(url);
     var data = new FormData();
     data.append("algo", "hmmsearch");
     data.append("seqdb", "pdb");
     var request = new XMLHttpRequest();
     request.open("POST", url, true);
-//    request.setRequestHeader("Accept", "application/json");
-    request.setRequestHeader("Accept", "text/html");
+    request.setRequestHeader("Accept", "application/json");
     request.onreadystatechange = callback.bind(this, request);
     request.send(data);
 }
