@@ -12,6 +12,15 @@ function phmmerRequest(seq, seqdb, callback) {
     request.send(data);
 }
 
+/*
+function phmmerCallback(request) {
+    if (request.readyState === XMLHttpRequest.HEADERS_RECEIVED) {
+        var locationHeader = request.getResponseHeader("Location");	// searches GET headers
+        console.log(locationHeader);
+    }
+}
+*/
+
 function phmmerCallback(request) {
     if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 200)) {
         var responseURL = request.responseURL;
