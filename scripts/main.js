@@ -24,28 +24,39 @@ function phmmerRequest(seq, seqdb, callback) {
     request.send(data);
 }
 
-/*
-function phmmerCallback(request) {
-    if (request.readyState === XMLHttpRequest.HEADERS_RECEIVED) {
-        var locationHeader = request.getResponseHeader("Location");	// searches GET headers
-        console.log(locationHeader);
-    }
-}
-*/
-
 function phmmerCallback(request) {
     if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 200)) {
         var responseURL = request.responseURL;
         console.log(responseURL);
-        hmmsearchRequest(responseURL, hmmsearchCallback);
+        var jobID = responseURL.split("/")[6];
+        checkSignificantHitsRequest(jobID, checkSignificantHitsCallback);
     }
 }
 
-function hmmsearchRequest(resultsURL, callback) {
-    var jobID = resultsURL.split("/")[6];
+function checkSignificantHitsRequest(jobID, callback) {
+//    var url = "https://www.ebi.ac.uk/Tools/hmmer/results/" + jobID + "?range=1,1&ali=0&output=json";
+    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer/results/" + jobID + "?range=1,1&ali=0&output=json";
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.onload = callback.bind(this, request, jobID);
+    request.send(null);
+}
+
+function checkSignificantHitsCallback(request, jobID) {
+    var topResultsStats = JSON.parse(request.response)["results"]["stats"];
+    if (Number(topResultsStats["nhits"]) === 0) {
+        throw new Error("No hits were found.");
+    }
+    if (Number(topResultsStats["nincluded"]) === 0) {
+        throw new Error("No significant hits were found.");
+    }
+    hmmsearchRequest(jobID, hmmsearchCallback);
+}
+
+function hmmsearchRequest(jobID, callback) {
 //    var url = "https://www.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
     var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
-    console.log(url);
+//    console.log(url);
     var data = new FormData();
     data.append("algo", "hmmsearch");
     data.append("seqdb", "pdb");
