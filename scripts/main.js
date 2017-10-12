@@ -89,14 +89,14 @@ function phmmerResultsHMMCallback(request) {
     var phmmerResultsHMM = request.response;	// HMM from high-scoring (above threshold) phmmer search hits
 //    console.log(phmmerResultsHMM);
     var phmmerResultsHMMBlob = new Blob([phmmerResultsHMM], {type: "text/plain"});
-    skylignRequest("hmm", phmmerResultsHMMBlob, skylignCallback);
+    skylignURLRequest(phmmerResultsHMMBlob, skylignURLCallback);
 }
 
-function skylignRequest(processing, file, callback) {
+function skylignURLRequest(file, callback) {
     var url = "http://skylign.org/";
     var data = new FormData();
-    data.append("processing", processing);
     data.append("file", file);
+    data.append("processing", "hmm");
     var request = new XMLHttpRequest();
     request.open("POST", url, true);
     request.setRequestHeader("Accept", "application/json");
@@ -104,11 +104,25 @@ function skylignRequest(processing, file, callback) {
     request.send(data);
 }
 
-function skylignCallback(request) {
+function skylignURLCallback(request) {
     if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 200)) {
         var responseURL = JSON.parse(request.response)["url"];
         console.log(responseURL);
+        skylignLogoRequest(responseURL, skylignLogoCallback);
     }
+}
+
+function skylignLogoRequest(resultsURL, callback) {
+    var request = new XMLHttpRequest();
+    request.open("GET", resultsURL, true);
+    request.setRequestHeader("Accept", "application/json");
+    request.onload = callback.bind(this, request);
+    request.send(null);
+}
+
+function skylignLogoCallback(request) {
+    var logo = JSON.parse(request.response);
+    console.log(logo);
 }
 
 /*----------------------------------------------------------------------------*/
