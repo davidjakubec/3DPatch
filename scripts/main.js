@@ -122,16 +122,27 @@ function skylignLogoRequest(resultsURL, callback) {
 
 function skylignLogoCallback(request) {
     var logo = JSON.parse(request.response);
-    console.log(logo);
+//    console.log(logo);
+    var informationContentProfile = [];
+    for (var i = 0; i < logo["height_arr"].length; i += 1) {
+        var positionLetterHeights = logo["height_arr"][i];
+        var positionInformationContent = (positionLetterHeights.map(function (letter) {return Number(letter.split(":")[1]);})).reduce(function (a, b) {return a + b;}, 0);
+        informationContentProfile.push(positionInformationContent);
+    }
+//    console.log(informationContentProfile);
+    var maxObservedInformationContent = informationContentProfile.reduce(function (a, b) {return Math.max(a, b);});
+//    console.log(maxObservedInformationContent);
+    var maxTheoreticalInformationContent = Number(logo["max_height_theory"]);
+//    console.log(maxTheoreticalInformationContent);
 }
 
 /*----------------------------------------------------------------------------*/
 
 document.querySelector("#submitSequenceButton").onclick = function() {
-    var sequence = document.querySelector("#sequenceInput").value.toUpperCase().replace(/\s+/g, "");
-    console.log(sequence);
-    checkInputSequence(sequence);
-    phmmerRequest(sequence, "uniprotrefprot", phmmerCallback);
+    window.inputSequence = document.querySelector("#sequenceInput").value.toUpperCase().replace(/\s+/g, "");
+    console.log(inputSequence);
+    checkInputSequence(inputSequence);
+    phmmerRequest(inputSequence, "uniprotrefprot", phmmerCallback);
 }
 
 function checkInputSequence(seq) {
