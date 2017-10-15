@@ -1,3 +1,7 @@
+"use strict";
+
+/*----------------------------------------------------------------------------*/
+
 Set.prototype.intersection = function(setB) {
     var intersection = new Set();
     for (var elem of setB) {
@@ -8,11 +12,22 @@ Set.prototype.intersection = function(setB) {
     return intersection;
 }
 
+function printToInfoBox(text, wipe = false) {
+    var infoBox = document.getElementById("infoBox");
+    var newParagraph = document.createElement("p");
+    var newParagraphText = document.createTextNode(text);
+    newParagraph.appendChild(newParagraphText);
+    if (wipe === true) {
+        infoBox.textContent = null;
+    }
+    infoBox.appendChild(newParagraph);
+}
+
 /*----------------------------------------------------------------------------*/
 
 function phmmerRequest(seq, seqdb, callback) {
-//    var url = "https://www.ebi.ac.uk/Tools/hmmer/search/phmmer";
-    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer/search/phmmer";
+    var url = "https://www.ebi.ac.uk/Tools/hmmer/search/phmmer";
+//    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer/search/phmmer";
     var data = new FormData();
     data.append("algo", "phmmer");
     data.append("seq", seq);
@@ -34,8 +49,8 @@ function phmmerCallback(request) {
 }
 
 function checkSignificantHitsRequest(jobID, callback) {
-//    var url = "https://www.ebi.ac.uk/Tools/hmmer/results/" + jobID + "?range=1,1&ali=0&output=json";
-    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer/results/" + jobID + "?range=1,1&ali=0&output=json";
+    var url = "https://www.ebi.ac.uk/Tools/hmmer/results/" + jobID + "?range=1,1&ali=0&output=json";
+//    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer/results/" + jobID + "?range=1,1&ali=0&output=json";
     var request = new XMLHttpRequest();
     request.open("GET", url, true);
     request.onload = callback.bind(this, request, jobID);
@@ -45,17 +60,17 @@ function checkSignificantHitsRequest(jobID, callback) {
 function checkSignificantHitsCallback(request, jobID) {
     var topResultsStats = JSON.parse(request.response)["results"]["stats"];
     if (Number(topResultsStats["nhits"]) === 0) {
-        throw new Error("No hits were found.");
+        throw new Error("No hits were found using phmmer search.");
     }
     if (Number(topResultsStats["nincluded"]) === 0) {
-        throw new Error("No significant hits were found.");
+        throw new Error("No significant hits were found using phmmer search.");
     }
     hmmsearchRequest(jobID, hmmsearchCallback);
 }
 
 function hmmsearchRequest(jobID, callback) {
-//    var url = "https://www.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
-    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
+    var url = "https://www.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
+//    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
 //    console.log(url);
     var data = new FormData();
     data.append("algo", "hmmsearch");
@@ -71,9 +86,12 @@ function hmmsearchCallback(request) {
     if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 200)) {
         var responseURL = request.responseURL;
         console.log(responseURL);
-        phmmerResultsHMMRequest(responseURL, phmmerResultsHMMCallback);
         var hits = JSON.parse(request.response)["results"]["hits"];	// all hits, incl. high E-value
         console.log(hits);
+        if (hits.length === 0) {
+            throw new Error("No structures were found using hmmsearch.");
+        }
+        phmmerResultsHMMRequest(responseURL, phmmerResultsHMMCallback);
     }
 }
 
@@ -88,8 +106,28 @@ function phmmerResultsHMMRequest(resultsURL, callback) {
 function phmmerResultsHMMCallback(request) {
     var phmmerResultsHMM = request.response;	// HMM from high-scoring (above threshold) phmmer search hits
 //    console.log(phmmerResultsHMM);
-    var phmmerResultsHMMBlob = new Blob([phmmerResultsHMM], {type: "text/plain"});
-    skylignURLRequest(phmmerResultsHMMBlob, skylignURLCallback);
+    window.phmmerResultsHMMBlob = new Blob([phmmerResultsHMM], {type: "text/plain"});
+    alignInputToHMMRequest(inputSequence, phmmerResultsHMM, alignInputToHMMCallback);
+}
+
+function alignInputToHMMRequest(seq, hmm, callback) {
+    var url = "https://wwwdev.ebi.ac.uk/Tools/hmmer/align";
+    var data = new FormData();
+    data.append("seq", ">seq\n" + seq);
+    data.append("hmm", hmm);
+    var request = new XMLHttpRequest();
+    request.open("POST", url, true);
+    request.setRequestHeader("Accept", "text/plain");
+    request.onreadystatechange = callback.bind(this, request);
+    request.send(data);
+}
+
+function alignInputToHMMCallback(request) {
+    if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 200)) {
+        var alignedInputSequence = request.response.split("\n")[2].split(/\s+/)[1];
+//        console.log(alignedInputSequence);
+        skylignURLRequest(phmmerResultsHMMBlob, skylignURLCallback);
+    }
 }
 
 function skylignURLRequest(file, callback) {
