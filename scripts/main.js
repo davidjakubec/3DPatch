@@ -12,6 +12,7 @@ Set.prototype.intersection = function(setB) {
     return intersection;
 }
 
+/*
 function printToInfoBox(text, wipe = false) {
     var infoBox = document.getElementById("infoBox");
     var newParagraph = document.createElement("p");
@@ -22,12 +23,13 @@ function printToInfoBox(text, wipe = false) {
     }
     infoBox.appendChild(newParagraph);
 }
+*/
 
 /*----------------------------------------------------------------------------*/
 
 function phmmerRequest(seq, seqdb, callback) {
-    var url = "https://www.ebi.ac.uk/Tools/hmmer/search/phmmer";
-//    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer/search/phmmer";
+//    var url = "https://www.ebi.ac.uk/Tools/hmmer/search/phmmer";
+    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer/search/phmmer";
     var data = new FormData();
     data.append("algo", "phmmer");
     data.append("seq", seq);
@@ -49,8 +51,8 @@ function phmmerCallback(request) {
 }
 
 function checkSignificantHitsRequest(jobID, callback) {
-    var url = "https://www.ebi.ac.uk/Tools/hmmer/results/" + jobID + "?range=1,1&ali=0&output=json";
-//    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer/results/" + jobID + "?range=1,1&ali=0&output=json";
+//    var url = "https://www.ebi.ac.uk/Tools/hmmer/results/" + jobID + "?range=1,1&ali=0&output=json";
+    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer/results/" + jobID + "?range=1,1&ali=0&output=json";
     var request = new XMLHttpRequest();
     request.open("GET", url, true);
     request.onload = callback.bind(this, request, jobID);
@@ -69,8 +71,8 @@ function checkSignificantHitsCallback(request, jobID) {
 }
 
 function hmmsearchRequest(jobID, callback) {
-    var url = "https://www.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
-//    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
+//    var url = "https://www.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
+    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
 //    console.log(url);
     var data = new FormData();
     data.append("algo", "hmmsearch");
@@ -87,10 +89,24 @@ function hmmsearchCallback(request) {
         var responseURL = request.responseURL;
         console.log(responseURL);
         var hits = JSON.parse(request.response)["results"]["hits"];	// all hits, incl. high E-value
-        console.log(hits);
+//        console.log(hits);
         if (hits.length === 0) {
             throw new Error("No structures were found using hmmsearch.");
         }
+        window.hmmsearchDomainAlignments = [];
+        for (var hit of hits) {
+            var domains = hit["domains"];
+            for (var domain of domains) {
+                var aliSeq = domain["aliaseq"];
+                var hmmStart = domain["alihmmfrom"];
+                var hmmEnd = domain["alihmmto"];
+                var seqStart = domain["alisqfrom"];
+                var seqName = domain["alisqname"];
+                var seqEnd = domain["alisqto"];
+                hmmsearchDomainAlignments.push([aliSeq, hmmStart, hmmEnd, seqStart, seqName, seqEnd]);
+            }
+        }
+//        console.log(hmmsearchDomainAlignments);
         phmmerResultsHMMRequest(responseURL, phmmerResultsHMMCallback);
     }
 }
@@ -172,6 +188,24 @@ function skylignLogoCallback(request) {
 //    console.log(maxObservedInformationContent);
     var maxTheoreticalInformationContent = Number(logo["max_height_theory"]);
 //    console.log(maxTheoreticalInformationContent);
+    var domainInformationContentProfiles = [];
+    for (var domainAlignment of hmmsearchDomainAlignments) {
+        var hmmStart = domainAlignment[1];
+        var matchStateCount = 0;
+        var domainInformationContentProfile = [];
+        for (var letter of domainAlignment[0]) {
+            if (letter === "-") {
+                matchStateCount += 1;
+            } else if ((letter === letter.toUpperCase()) && (letter !== "-")) {
+                domainInformationContentProfile.push(informationContentProfile[hmmStart - 1 + matchStateCount]);
+                matchStateCount += 1;
+            } else {
+                domainInformationContentProfile.push(0.0);
+            }
+        }
+        domainInformationContentProfiles.push([domainAlignment[4], domainAlignment[3], domainAlignment[5], domainInformationContentProfile]);
+    }
+    console.log(domainInformationContentProfiles);
 }
 
 /*----------------------------------------------------------------------------*/
