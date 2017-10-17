@@ -108,6 +108,8 @@ function hmmsearchCallback(request) {
         }
 //        console.log(hmmsearchDomainAlignments);
         phmmerResultsHMMRequest(responseURL, phmmerResultsHMMCallback);
+    } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 400)) {
+        throw new Error("400 Bad Request hmmsearch error.");
     }
 }
 
@@ -188,6 +190,12 @@ function skylignLogoCallback(request) {
 //    console.log(maxObservedInformationContent);
     var maxTheoreticalInformationContent = Number(logo["max_height_theory"]);
 //    console.log(maxTheoreticalInformationContent);
+    var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (positionInformationContent / maxTheoreticalInformationContent);});
+//    calculateDomainInformationContentProfiles(informationContentProfile);
+    calculateDomainInformationContentProfiles(normalizedInformationContentProfile);
+}
+
+function calculateDomainInformationContentProfiles (hmmInformationContentProfile) {
     var domainInformationContentProfiles = [];
     for (var domainAlignment of hmmsearchDomainAlignments) {
         var hmmStart = domainAlignment[1];
@@ -197,7 +205,7 @@ function skylignLogoCallback(request) {
             if (letter === "-") {
                 matchStateCount += 1;
             } else if ((letter === letter.toUpperCase()) && (letter !== "-")) {
-                domainInformationContentProfile.push(informationContentProfile[hmmStart - 1 + matchStateCount]);
+                domainInformationContentProfile.push(hmmInformationContentProfile[hmmStart - 1 + matchStateCount]);
                 matchStateCount += 1;
             } else {
                 domainInformationContentProfile.push(0.0);
@@ -206,7 +214,8 @@ function skylignLogoCallback(request) {
         domainInformationContentProfiles.push([domainAlignment[4], domainAlignment[3], domainAlignment[5], domainInformationContentProfile]);
     }
 //    console.log(domainInformationContentProfiles);
-    visualizeMolecule(domainInformationContentProfiles[0]);
+    var representativeMolecule = domainInformationContentProfiles[0];
+    visualizeMolecule(representativeMolecule);
 }
 
 function visualizeMolecule(moleculeData) {
