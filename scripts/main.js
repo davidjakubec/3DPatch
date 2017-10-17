@@ -205,7 +205,14 @@ function skylignLogoCallback(request) {
         }
         domainInformationContentProfiles.push([domainAlignment[4], domainAlignment[3], domainAlignment[5], domainInformationContentProfile]);
     }
-    console.log(domainInformationContentProfiles);
+//    console.log(domainInformationContentProfiles);
+    visualizeMolecule(domainInformationContentProfiles[0]);
+}
+
+function visualizeMolecule(moleculeData) {
+    var pdbId = moleculeData[0].split("_")[0];
+    var plugin = LiteMol.Plugin.create({target: "#litemol"});
+    plugin.loadMolecule({id: pdbId, url: "https://www.ebi.ac.uk/pdbe/static/entry/" + pdbId + "_updated.cif", format: "cif"});
 }
 
 /*----------------------------------------------------------------------------*/
