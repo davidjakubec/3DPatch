@@ -195,7 +195,7 @@ function skylignLogoCallback(request) {
     calculateDomainInformationContentProfiles(normalizedInformationContentProfile);
 }
 
-function calculateDomainInformationContentProfiles (hmmInformationContentProfile) {
+function calculateDomainInformationContentProfiles(hmmInformationContentProfile) {
     var domainInformationContentProfiles = [];
     for (var domainAlignment of hmmsearchDomainAlignments) {
         var hmmStart = domainAlignment[1];
@@ -215,7 +215,22 @@ function calculateDomainInformationContentProfiles (hmmInformationContentProfile
     }
 //    console.log(domainInformationContentProfiles);
     var representativeMolecule = domainInformationContentProfiles[0];
-    visualizeMolecule(representativeMolecule);
+    representativeMoleculemmCIFRequest(representativeMolecule, representativeMoleculemmCIFCallback);
+}
+
+function representativeMoleculemmCIFRequest(moleculeData, callback) {
+    var url = "https://www.ebi.ac.uk/pdbe/static/entry/" + moleculeData[0].split("_")[0] + "_updated.cif";
+    var request = new XMLHttpRequest();
+    request.open("GET", url, true);
+    request.onload = callback.bind(this, request, moleculeData);
+    request.send(null);
+}
+
+function representativeMoleculemmCIFCallback(request, moleculeData) {
+    var representativeMoleculemmCIFAtoms = request.response.split("\n");
+    console.log(representativeMoleculemmCIFAtoms);
+
+    visualizeMolecule(moleculeData);
 }
 
 function visualizeMolecule(moleculeData) {
