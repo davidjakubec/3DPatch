@@ -215,6 +215,7 @@ function calculateDomainInformationContentProfiles(hmmInformationContentProfile)
     }
 //    console.log(domainInformationContentProfiles);
     var representativeMolecule = domainInformationContentProfiles[0];
+    console.log(representativeMolecule);
     representativeMoleculemmCIFRequest(representativeMolecule, representativeMoleculemmCIFCallback);
 }
 
@@ -227,8 +228,21 @@ function representativeMoleculemmCIFRequest(moleculeData, callback) {
 }
 
 function representativeMoleculemmCIFCallback(request, moleculeData) {
-    var representativeMoleculemmCIFAtoms = request.response.split("\n");
-    console.log(representativeMoleculemmCIFAtoms);
+    var mmCIFBlocks = request.response.split(/\n#\n/).map(function (block) {return block.split("\n");});
+    var polySeqScheme = mmCIFBlocks.filter(function (block) {return ((block[0] === "loop_") && (block[1].slice(0, 21) === "_pdbx_poly_seq_scheme"));})[0];
+    var polySeqSchemeHeaders = polySeqScheme.filter(function (line) {return line.slice(0, 21) === "_pdbx_poly_seq_scheme";}).map(function (line) {return line.trim().split(".")[1];});
+    var polySeqSchemeData = polySeqScheme.filter(function (line) {return ((line.slice(0, 21) !== "_pdbx_poly_seq_scheme") && (line !== "loop_"));}).map(function (line) {return line.trim().split(/\s+/g);});
+    var nonpolyScheme = mmCIFBlocks.filter(function (block) {return ((block[0] === "loop_") && (block[1].slice(0, 20) === "_pdbx_nonpoly_scheme"));})[0];
+    if (nonpolyScheme !== undefined) {
+        var nonpolySchemeHeaders = nonpolyScheme.filter(function (line) {return line.slice(0, 20) === "_pdbx_nonpoly_scheme";}).map(function (line) {return line.trim().split(".")[1];});
+        var nonpolySchemeData = nonpolyScheme.filter(function (line) {return ((line.slice(0, 20) !== "_pdbx_nonpoly_scheme") && (line !== "loop_"));}).map(function (line) {return line.trim().split(/\s+/g);});
+    } else {
+        var nonpolySchemeHeaders = [];
+        var nonpolySchemeData = [];
+    }
+
+
+
 
     visualizeMolecule(moleculeData);
 }
@@ -263,5 +277,6 @@ function checkInputSequence(seq) {
     }
 }
 
-// MERKRGRQTYTRYQTLELEKEFHFNRYLTRRRRIEIAHALSLTERQIKIWFQNRRMKWKKEN	9ant
-// EQACDICRLKKLKCSKEKPKCAKCLKNNWECRYSPKTKRSPLTRAHLTEVESRLERLEQLFLLIFPREDLDMILKMDSLQ	3coq
+// MERKRGRQTYTRYQTLELEKEFHFNRYLTRRRRIEIAHALSLTERQIKIWFQNRRMKWKKEN	9ant_A
+// EQACDICRLKKLKCSKEKPKCAKCLKNNWECRYSPKTKRSPLTRAHLTEVESRLERLEQLFLLIFPREDLDMILKMDSLQ	3coq_A
+// KAERKRMRNRIAASKSRKRKLERIARLEEKVKTLKAQNSELASTANMLREQVAQLKQKVMNH	1fos_F
