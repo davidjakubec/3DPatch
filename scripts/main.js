@@ -276,14 +276,23 @@ function representativeMoleculemmCIFCallback(request, moleculeData) {
             structureInformationContentProfile.push(structureResidueSchemeInformationContentProfile[i]);
         }
     }
-    console.log(structureInformationContentProfile);
-
-    visualizeMolecule(moleculeData);
+//    console.log(structureInformationContentProfile);
+    visualizeMolecule(moleculeData, structureInformationContentProfile);
 }
 
-function visualizeMolecule(moleculeData) {
+function visualizeMolecule(moleculeData, structureInformationContentProfile) {
+//    console.log(conservationColorScale);
+    conservationColorScale.splice(0, 1, [0.749, 0.937, 0.561]);
+    var structureInformationContentColors = ["firstEntrySkipped",];
+    for (var i = 0; i < structureInformationContentProfile.length; i += 1) {
+        var colorId = Math.round(255 * structureInformationContentProfile[i]);
+        var color = {r: conservationColorScale[colorId][0], g: conservationColorScale[colorId][1], b: conservationColorScale[colorId][2]};
+        structureInformationContentColors.push(color);
+    }
+//    console.log(structureInformationContentColors);
     var pdbId = moleculeData[0].split("_")[0];
-    var plugin = LiteMol.Plugin.create({target: "#litemol"});
+    LiteMolCallback(structureInformationContentColors);
+    var plugin = LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#8FBFEF"});
     plugin.loadMolecule({id: pdbId, url: "https://www.ebi.ac.uk/pdbe/static/entry/" + pdbId + "_updated.cif", format: "cif"});
 }
 
