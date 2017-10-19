@@ -80,11 +80,11 @@ function hmmsearchRequest(jobID, callback) {
     var request = new XMLHttpRequest();
     request.open("POST", url, true);
     request.setRequestHeader("Accept", "application/json");
-    request.onreadystatechange = callback.bind(this, request);
+    request.onreadystatechange = callback.bind(this, request, jobID);
     request.send(data);
 }
 
-function hmmsearchCallback(request) {
+function hmmsearchCallback(request, jobID) {
     if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 200)) {
         var responseURL = request.responseURL;
         console.log(responseURL);
@@ -109,7 +109,9 @@ function hmmsearchCallback(request) {
 //        console.log(hmmsearchDomainAlignments);
         phmmerResultsHMMRequest(responseURL, phmmerResultsHMMCallback);
     } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 400)) {
-        throw new Error("400 Bad Request hmmsearch error.");
+//        throw new Error("400 Bad Request hmmsearch error.");
+        console.log("400 Bad Request hmmsearch error, trying again ...");
+        hmmsearchRequest(jobID, hmmsearchCallback);
     }
 }
 
@@ -248,7 +250,33 @@ function representativeMoleculemmCIFCallback(request, moleculeData) {
             structureResidueScheme.push([line[nonpolySchemeHeadersAsymIdIndex], line[nonpolySchemeHeadersPDBMonId]]);
         }
     }
-    console.log(structureResidueScheme);
+//    console.log(structureResidueScheme);
+    var informationContentProfileChainId = moleculeData[0].split("_")[1];
+    var informationContentProfileStart = moleculeData[1];
+    var informationContentProfileEnd = moleculeData[2];
+    var regionInformationContentProfile = moleculeData[3];
+    var structureResidueSchemeInformationContentProfile = [];
+    var currentResidueIndex = 1;
+    var informationContentProfileRegionResidueIndex = 0;
+    for (var residue of structureResidueScheme) {
+        if (residue[0] !== informationContentProfileChainId) {
+            structureResidueSchemeInformationContentProfile.push(0.0);
+        } else {
+            if ((currentResidueIndex >= informationContentProfileStart) && (currentResidueIndex <= informationContentProfileEnd)) {
+                structureResidueSchemeInformationContentProfile.push(regionInformationContentProfile[informationContentProfileRegionResidueIndex]);
+                informationContentProfileRegionResidueIndex += 1;
+            }
+            currentResidueIndex += 1;
+        }
+    }
+//    console.log(structureResidueSchemeInformationContentProfile);
+    var structureInformationContentProfile = [];
+    for (var i = 0; i < structureResidueScheme.length; i += 1) {
+        if (structureResidueScheme[i][1] !== "?") {
+            structureInformationContentProfile.push(structureResidueSchemeInformationContentProfile[i]);
+        }
+    }
+    console.log(structureInformationContentProfile);
 
     visualizeMolecule(moleculeData);
 }
