@@ -1,3 +1,9 @@
+/*
+ * THIS PROGRAM CONTAINS THE FOLLOWING MODIFICATIONS MADE BY ME (DAVID JAKUBEC):
+ *   1) THE ENTIRE CODE HAS BEEN WRAPPED IN A ``LiteMolCallback'' FUNCTION,
+ *   2) A NEW COLORING OPTION ``Information Content'' HAS BEEN ADDED.
+ */
+
 function LiteMolCallback(structureInformationContentColors) {
 
 	; var __LiteMol_Plugin = function () {
@@ -74418,7 +74424,6 @@ function LiteMolCallback(structureInformationContentColors) {
 				    colors: Molecule.UniformBaseColors,
 				    provider: uniformThemeProvider
 				}, {
-	// DJ NEW
 				    name: 'Information Content',
 				    description: 'Color the surface by residue information content.',
 				    colors: Molecule.ModelVisualBaseColors,
