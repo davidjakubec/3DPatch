@@ -189,12 +189,9 @@ function skylignLogoCallback(request) {
     }
 //    console.log(informationContentProfile);
     var maxObservedInformationContent = informationContentProfile.reduce(function (a, b) {return Math.max(a, b);});
-//    console.log(maxObservedInformationContent);
     var maxTheoreticalInformationContent = Number(logo["max_height_theory"]);
-//    console.log(maxTheoreticalInformationContent);
-//    var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (positionInformationContent / maxTheoreticalInformationContent);});
-    var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (Math.exp(positionInformationContent) / Math.exp(maxObservedInformationContent));});
-//    calculateDomainInformationContentProfiles(informationContentProfile);
+    var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (positionInformationContent / maxTheoreticalInformationContent);});
+//    var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (Math.exp(positionInformationContent) / Math.exp(maxObservedInformationContent));});
     calculateDomainInformationContentProfiles(normalizedInformationContentProfile);
 }
 
@@ -235,20 +232,20 @@ function representativeMoleculemmCIFCallback(request, moleculeData) {
     var polySeqScheme = mmCIFBlocks.filter(function (block) {return ((block[0] === "loop_") && (block[1].slice(0, 21) === "_pdbx_poly_seq_scheme"));})[0];
     var structureResidueScheme = [];
     var polySeqSchemeHeaders = polySeqScheme.filter(function (line) {return line.slice(0, 21) === "_pdbx_poly_seq_scheme";}).map(function (line) {return line.trim().split(".")[1];});
-    var polySeqSchemeHeadersAsymIdIndex = polySeqSchemeHeaders.indexOf("asym_id");
-    var polySeqSchemeHeadersPDBMonId = polySeqSchemeHeaders.indexOf("pdb_mon_id");
+    var polySeqSchemeHeadersPDBStrandIdIndex = polySeqSchemeHeaders.indexOf("pdb_strand_id");
+    var polySeqSchemeHeadersPDBMonIdIndex = polySeqSchemeHeaders.indexOf("pdb_mon_id");
     var polySeqSchemeData = polySeqScheme.filter(function (line) {return ((line.slice(0, 21) !== "_pdbx_poly_seq_scheme") && (line !== "loop_"));}).map(function (line) {return line.trim().split(/\s+/g);});
     for (var line of polySeqSchemeData) {
-        structureResidueScheme.push([line[polySeqSchemeHeadersAsymIdIndex], line[polySeqSchemeHeadersPDBMonId]]);
+        structureResidueScheme.push([line[polySeqSchemeHeadersPDBStrandIdIndex], line[polySeqSchemeHeadersPDBMonIdIndex]]);
     }
     var nonpolyScheme = mmCIFBlocks.filter(function (block) {return ((block[0] === "loop_") && (block[1].slice(0, 20) === "_pdbx_nonpoly_scheme"));})[0];
     if (nonpolyScheme !== undefined) {
         var nonpolySchemeHeaders = nonpolyScheme.filter(function (line) {return line.slice(0, 20) === "_pdbx_nonpoly_scheme";}).map(function (line) {return line.trim().split(".")[1];});
-        var nonpolySchemeHeadersAsymIdIndex = nonpolySchemeHeaders.indexOf("asym_id");
-        var nonpolySchemeHeadersPDBMonId = nonpolySchemeHeaders.indexOf("pdb_mon_id");
+        var nonpolySchemeHeadersPDBStrandIdIndex = nonpolySchemeHeaders.indexOf("pdb_strand_id");
+        var nonpolySchemeHeadersPDBMonIdIndex = nonpolySchemeHeaders.indexOf("pdb_mon_id");
         var nonpolySchemeData = nonpolyScheme.filter(function (line) {return ((line.slice(0, 20) !== "_pdbx_nonpoly_scheme") && (line !== "loop_"));}).map(function (line) {return line.trim().split(/\s+/g);});
         for (var line of nonpolySchemeData) {
-            structureResidueScheme.push([line[nonpolySchemeHeadersAsymIdIndex], line[nonpolySchemeHeadersPDBMonId]]);
+            structureResidueScheme.push([line[nonpolySchemeHeadersPDBStrandIdIndex], line[nonpolySchemeHeadersPDBMonIdIndex]]);
         }
     }
 //    console.log(structureResidueScheme);
@@ -266,6 +263,8 @@ function representativeMoleculemmCIFCallback(request, moleculeData) {
             if ((currentResidueIndex >= informationContentProfileStart) && (currentResidueIndex <= informationContentProfileEnd)) {
                 structureResidueSchemeInformationContentProfile.push(regionInformationContentProfile[informationContentProfileRegionResidueIndex]);
                 informationContentProfileRegionResidueIndex += 1;
+            } else {
+                structureResidueSchemeInformationContentProfile.push(0.0);
             }
             currentResidueIndex += 1;
         }
