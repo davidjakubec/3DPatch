@@ -1,7 +1,9 @@
 /*
  * THIS PROGRAM CONTAINS THE FOLLOWING MODIFICATIONS MADE BY ME (DAVID JAKUBEC):
  *   1) THE ENTIRE CODE HAS BEEN WRAPPED IN A ``LiteMolCallback'' FUNCTION,
- *   2) A NEW COLORING OPTION ``Information Content'' HAS BEEN ADDED.
+ *   2) A NEW COLORING OPTION ``Information Content'' HAS BEEN ADDED,
+ *   3) THE COLORING OPTION ``Information Content'' HAS BEEN MADE DEFAULT
+        FOR CARTOON VISUALIZATION STYLE.
  */
 
 function LiteMolCallback(structureInformationContentColors) {
@@ -74430,7 +74432,7 @@ function LiteMolCallback(structureInformationContentColors) {
 				    provider: createPaletteThemeProvider(function (m) { return ({ index: m.data.atoms.residueIndex, property: m.data.residues.indices }); }, structureInformationContentColors)
 				}
 			    ];
-			    Default.CartoonThemeTemplate = Default.Themes.filter(function (t) { return t.name === 'Chain ID'; })[0];
+			    Default.CartoonThemeTemplate = Default.Themes.filter(function (t) { return t.name === 'Information Content'; })[0];
 			    Default.ElementSymbolThemeTemplate = Default.Themes.filter(function (t) { return t.name === 'Element Symbol'; })[0];
 			    Default.SurfaceThemeTemplate = Default.Themes.filter(function (t) { return t.name === 'Uniform Color'; })[0];
 			    Default.UniformThemeTemplate = Default.Themes.filter(function (t) { return t.name === 'Uniform Color'; })[0];

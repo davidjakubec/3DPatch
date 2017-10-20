@@ -192,7 +192,8 @@ function skylignLogoCallback(request) {
 //    console.log(maxObservedInformationContent);
     var maxTheoreticalInformationContent = Number(logo["max_height_theory"]);
 //    console.log(maxTheoreticalInformationContent);
-    var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (positionInformationContent / maxTheoreticalInformationContent);});
+//    var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (positionInformationContent / maxTheoreticalInformationContent);});
+    var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (Math.exp(positionInformationContent) / Math.exp(maxObservedInformationContent));});
 //    calculateDomainInformationContentProfiles(informationContentProfile);
     calculateDomainInformationContentProfiles(normalizedInformationContentProfile);
 }
