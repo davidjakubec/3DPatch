@@ -109,10 +109,13 @@ function hmmsearchCallback(request, jobID) {
 //        console.log(hmmsearchDomainAlignments);
         phmmerResultsHMMRequest(responseURL, phmmerResultsHMMCallback);
     } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 400)) {
-//        throw new Error("400 Bad Request hmmsearch error.");
-        console.log("400 Bad Request hmmsearch error, trying again ...");
-        hmmsearchRequest(jobID, hmmsearchCallback);
+        delayedHmmsearchRequest(jobID, hmmsearchCallback);
     }
+}
+
+function delayedHmmsearchRequest(jobID, hmmsearchCallback) {
+    console.log("400 Bad Request hmmsearch error, trying again ...");
+    var timeoutID = window.setTimeout(hmmsearchRequest, 1000, jobID, hmmsearchCallback);
 }
 
 function phmmerResultsHMMRequest(resultsURL, callback) {
@@ -189,15 +192,24 @@ function skylignLogoCallback(request) {
     }
 //    console.log(informationContentProfile);
     var maxObservedInformationContent = informationContentProfile.reduce(function (a, b) {return Math.max(a, b);});
+    var maxExpObservedInformationContent = Math.exp(maxObservedInformationContent);
     var maxTheoreticalInformationContent = Number(logo["max_height_theory"]);
-    var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (positionInformationContent / maxTheoreticalInformationContent);});
-//    var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (Math.exp(positionInformationContent) / Math.exp(maxObservedInformationContent));});
-    calculateDomainInformationContentProfiles(normalizedInformationContentProfile);
+    var normalizationMethod = document.querySelector("#scalingSelection").value;
+    if (normalizationMethod === "linear") {
+        var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (positionInformationContent / maxTheoreticalInformationContent);});
+    } else if (normalizationMethod === "exponential") {
+        var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (Math.exp(positionInformationContent) / maxExpObservedInformationContent);});
+    }
+    if (inputMode === "sequence") {
+        calculateDomainInformationContentProfiles(normalizedInformationContentProfile, hmmsearchDomainAlignments);
+    } else if (inputMode === "HMM") {
+        calculateDomainInformationContentProfiles(normalizedInformationContentProfile, HMMInputHmmsearchDomainAlignments);
+    }
 }
 
-function calculateDomainInformationContentProfiles(hmmInformationContentProfile) {
+function calculateDomainInformationContentProfiles(hmmInformationContentProfile, domainAlignments) {
     var domainInformationContentProfiles = [];
-    for (var domainAlignment of hmmsearchDomainAlignments) {
+    for (var domainAlignment of domainAlignments) {
         var hmmStart = domainAlignment[1];
         var matchStateCount = 0;
         var domainInformationContentProfile = [];
@@ -298,7 +310,55 @@ function visualizeMolecule(moleculeData, structureInformationContentProfile) {
 
 /*----------------------------------------------------------------------------*/
 
+/*
+*/
+
+function HMMInputHmmsearchRequest(HMMFile, callback) {
+//    var url = "https://www.ebi.ac.uk/Tools/hmmer/search/hmmsearch";
+    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer/search/hmmsearch";
+    var data = new FormData();
+    data.append("algo", "hmmsearch");
+    data.append("file", HMMFile);
+    data.append("seqdb", "pdb");
+    var request = new XMLHttpRequest();
+    request.open("POST", url, true);
+    request.setRequestHeader("Accept", "application/json");
+    request.onreadystatechange = callback.bind(this, request, HMMFile);
+    request.send(data);
+}
+
+function HMMInputHmmsearchCallback(request, HMMFile) {
+    if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 200)) {
+        var responseURL = request.responseURL;
+        console.log(responseURL);
+        var hits = JSON.parse(request.response)["results"]["hits"];	// all hits, incl. high E-value
+//        console.log(hits);
+        if (hits.length === 0) {
+            throw new Error("No structures were found using hmmsearch.");
+        }
+        window.HMMInputHmmsearchDomainAlignments = [];
+        for (var hit of hits) {
+            var domains = hit["domains"];
+            for (var domain of domains) {
+                var aliSeq = domain["aliaseq"];
+                var hmmStart = domain["alihmmfrom"];
+                var hmmEnd = domain["alihmmto"];
+                var seqStart = domain["alisqfrom"];
+                var seqName = domain["alisqname"];
+                var seqEnd = domain["alisqto"];
+                HMMInputHmmsearchDomainAlignments.push([aliSeq, hmmStart, hmmEnd, seqStart, seqName, seqEnd]);
+            }
+        }
+//        console.log(HMMInputHmmsearchDomainAlignments);
+        skylignURLRequest(HMMFile, skylignURLCallback);
+    }
+}
+
+
+/*----------------------------------------------------------------------------*/
+
 document.querySelector("#submitSequenceButton").onclick = function() {
+    window.inputMode = "sequence";
     window.inputSequence = document.querySelector("#sequenceInput").value.toUpperCase().replace(/\s+/g, "");
     console.log(inputSequence);
     checkInputSequence(inputSequence);
@@ -323,3 +383,10 @@ function checkInputSequence(seq) {
 // MERKRGRQTYTRYQTLELEKEFHFNRYLTRRRRIEIAHALSLTERQIKIWFQNRRMKWKKEN	9ant_A
 // EQACDICRLKKLKCSKEKPKCAKCLKNNWECRYSPKTKRSPLTRAHLTEVESRLERLEQLFLLIFPREDLDMILKMDSLQ	3coq_A
 // KAERKRMRNRIAASKSRKRKLERIARLEEKVKTLKAQNSELASTANMLREQVAQLKQKVMNH	1fos_F
+
+document.querySelector("#submitHMMButton").onclick = function() {
+    window.inputMode = "HMM";
+    var inputHMMFile = document.querySelector("#HMMInput").files[0];
+    console.log(inputHMMFile);
+    HMMInputHmmsearchRequest(inputHMMFile, HMMInputHmmsearchCallback);
+}

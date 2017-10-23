@@ -9,8 +9,26 @@
 <!--        <script type="text/javascript" src="scripts/gunzip.min.js"></script> -->	<!-- MIT License -->
     </head>
     <body>
-        <input id="sequenceInput" type="text">
-        <button id="submitSequenceButton">Submit sequence</button>
+        <div style="background-color: #F1F187">
+            <label>Select information content color scaling:
+                <select id="scalingSelection" required>
+                    <option value="linear" selected>Linear</option>
+                    <option value="exponential">Exponential</option>
+                </select>
+            </label>
+        </div>
+        <div style="background-color: #87F187; margin-top: 10px">
+            <label>Enter a protein sequence ...
+                <input id="sequenceInput" type="text">
+                <button id="submitSequenceButton">Submit sequence</button>
+            </label>
+        </div>
+        <div style="background-color: #87BCF1; margin-top: 10px">
+            <label>... or upload an HMM file
+                <input id="HMMInput" type="file">
+                <button id="submitHMMButton">Submit HMM</button>
+            </label>
+        </div>
 <!--        <div id="infoBox"></div> -->
         <div id="litemol" style="width: 640px; height: 480px; margin-top: 200px; position: relative"></div>
         <script src="scripts/main.js"></script>
