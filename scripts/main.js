@@ -310,9 +310,6 @@ function visualizeMolecule(moleculeData, structureInformationContentProfile) {
 
 /*----------------------------------------------------------------------------*/
 
-/*
-*/
-
 function HMMInputHmmsearchRequest(HMMFile, callback) {
 //    var url = "https://www.ebi.ac.uk/Tools/hmmer/search/hmmsearch";
     var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer/search/hmmsearch";
@@ -353,7 +350,6 @@ function HMMInputHmmsearchCallback(request, HMMFile) {
         skylignURLRequest(HMMFile, skylignURLCallback);
     }
 }
-
 
 /*----------------------------------------------------------------------------*/
 
