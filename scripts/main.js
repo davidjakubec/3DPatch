@@ -129,7 +129,8 @@ function phmmerResultsHMMRequest(resultsURL, callback) {
 function phmmerResultsHMMCallback(request) {
     var phmmerResultsHMM = request.response;	// HMM from high-scoring (above threshold) phmmer search hits
 //    console.log(phmmerResultsHMM);
-    window.phmmerResultsHMMBlob = new Blob([phmmerResultsHMM], {type: "text/plain"});
+    var HMMConsensusSequence = phmmerResultsHMM.split("\n").filter(function (line) {return ((line.slice(0, 1) === " ") && (line.slice(-3) === "- -"));}).map(function (line) {return line.split(/\s+/g).slice(-4, -3)[0];}).join("");
+    console.log(HMMConsensusSequence);
     alignInputToHMMRequest(inputSequence, phmmerResultsHMM, alignInputToHMMCallback);
 }
 
@@ -141,15 +142,16 @@ function alignInputToHMMRequest(seq, hmm, callback) {
     var request = new XMLHttpRequest();
     request.open("POST", url, true);
     request.setRequestHeader("Accept", "text/plain");
-    request.onreadystatechange = callback.bind(this, request);
+    var hmmBlob = new Blob([hmm], {type: "text/plain"});
+    request.onreadystatechange = callback.bind(this, request, hmmBlob);
     request.send(data);
 }
 
-function alignInputToHMMCallback(request) {
+function alignInputToHMMCallback(request, hmmBlob) {
     if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 200)) {
         var alignedInputSequence = request.response.split("\n")[2].split(/\s+/)[1];
-//        console.log(alignedInputSequence);
-        skylignURLRequest(phmmerResultsHMMBlob, skylignURLCallback);
+        console.log(alignedInputSequence);
+        skylignURLRequest(hmmBlob, skylignURLCallback);
     }
 }
 
