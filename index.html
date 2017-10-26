@@ -9,7 +9,7 @@
 <!--        <script type="text/javascript" src="scripts/gunzip.min.js"></script> -->	<!-- MIT License -->
     </head>
     <body>
-        <div style="background-color: #EFEB93">
+        <div id="scalingSelectionDiv">
             <label>Select information content color scaling:
                 <select id="scalingSelection" required>
                     <option value="linear" selected>Linear</option>
@@ -17,20 +17,20 @@
                 </select>
             </label>
         </div>
-        <div style="background-color: #93C6EF; margin-top: 10px">
+        <div id="sequenceInputDiv">
             <label>Enter a protein sequence ...
                 <input id="sequenceInput" type="text">
                 <button id="submitSequenceButton">Submit sequence</button>
             </label>
         </div>
-        <div style="background-color: #EF9398; margin-top: 10px">
+        <div id=HMMInputDiv>
             <label>... or upload an HMM file
                 <input id="HMMInput" type="file">
                 <button id="submitHMMButton">Submit HMM</button>
             </label>
         </div>
 <!--        <div id="infoBox"></div> -->
-        <div id="litemol" style="width: 640px; height: 480px; margin-top: 200px; position: relative"></div>
+        <div id="litemol"></div>
         <script src="scripts/main.js"></script>
     </body>
 </html>

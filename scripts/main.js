@@ -129,7 +129,7 @@ function phmmerResultsHMMRequest(resultsURL, callback) {
 function phmmerResultsHMMCallback(request) {
     var phmmerResultsHMM = request.response;	// HMM from high-scoring (above threshold) phmmer search hits
 //    console.log(phmmerResultsHMM);
-    var HMMConsensusSequence = phmmerResultsHMM.split("\n").filter(function (line) {return ((line.slice(0, 1) === " ") && (line.slice(-3) === "- -"));}).map(function (line) {return line.split(/\s+/g).slice(-4, -3)[0];}).join("");
+    var HMMConsensusSequence = phmmerResultsHMM.split("\n").filter(function (line) {return (line.trim().split(/\s+/g).length === 26);}).map(function (line) {return line.split(/\s+/g).slice(-4, -3)[0];}).join("");
     console.log(HMMConsensusSequence);
     alignInputToHMMRequest(inputSequence, phmmerResultsHMM, alignInputToHMMCallback);
 }
@@ -291,7 +291,7 @@ function representativeMoleculemmCIFCallback(request, moleculeData) {
         }
     }
 //    console.log(structureInformationContentProfile);
-    visualizeMolecule(moleculeData, structureInformationContentProfile);
+//    visualizeMolecule(moleculeData, structureInformationContentProfile);
 }
 
 function visualizeMolecule(moleculeData, structureInformationContentProfile) {
@@ -311,6 +311,12 @@ function visualizeMolecule(moleculeData, structureInformationContentProfile) {
 }
 
 /*----------------------------------------------------------------------------*/
+
+function readInputHMMFileCallback(reader, HMMFile) {
+    var HMMInputHMMConsensusSequence = reader.result.split("\n").filter(function (line) {return (line.trim().split(/\s+/g).length === 26);}).map(function (line) {return line.split(/\s+/g).slice(-4, -3)[0];}).join("");
+    console.log(HMMInputHMMConsensusSequence);
+    HMMInputHmmsearchRequest(HMMFile, HMMInputHmmsearchCallback);
+}
 
 function HMMInputHmmsearchRequest(HMMFile, callback) {
 //    var url = "https://www.ebi.ac.uk/Tools/hmmer/search/hmmsearch";
@@ -386,5 +392,7 @@ document.querySelector("#submitHMMButton").onclick = function() {
     window.inputMode = "HMM";
     var inputHMMFile = document.querySelector("#HMMInput").files[0];
     console.log(inputHMMFile);
-    HMMInputHmmsearchRequest(inputHMMFile, HMMInputHmmsearchCallback);
+    var reader = new FileReader();
+    reader.onload = readInputHMMFileCallback.bind(this, reader, inputHMMFile);
+    reader.readAsText(inputHMMFile);
 }

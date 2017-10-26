@@ -1,3 +1,24 @@
 html {
-    background: #93EFBD;
+    background: #A4D5BC;
+}
+
+#scalingSelectionDiv {
+    background-color: #EFEB93;
+}
+
+#sequenceInputDiv {
+    background-color: #93C6EF;
+    margin-top: 10px;
+}
+
+#HMMInputDiv {
+    background-color: #EF9398;
+    margin-top: 10px;
+}
+
+#litemol {
+    width: 640px;
+    height: 480px;
+    margin-top: 200px;
+    position: relative;
 }
