@@ -28,8 +28,8 @@ function printToInfoBox(text, wipe = false) {
 /*----------------------------------------------------------------------------*/
 
 function phmmerRequest(seq, seqdb, callback) {
-//    var url = "https://www.ebi.ac.uk/Tools/hmmer/search/phmmer";
-    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer/search/phmmer";
+    var url = "https://www.ebi.ac.uk/Tools/hmmer/search/phmmer";
+//    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer/search/phmmer";
     var data = new FormData();
     data.append("algo", "phmmer");
     data.append("seq", seq);
@@ -51,8 +51,8 @@ function phmmerCallback(request) {
 }
 
 function checkSignificantHitsRequest(jobID, callback) {
-//    var url = "https://www.ebi.ac.uk/Tools/hmmer/results/" + jobID + "?range=1,1&ali=0&output=json";
-    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer/results/" + jobID + "?range=1,1&ali=0&output=json";
+    var url = "https://www.ebi.ac.uk/Tools/hmmer/results/" + jobID + "?range=1,1&ali=0&output=json";
+//    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer/results/" + jobID + "?range=1,1&ali=0&output=json";
     var request = new XMLHttpRequest();
     request.open("GET", url, true);
     request.onload = callback.bind(this, request, jobID);
@@ -71,8 +71,8 @@ function checkSignificantHitsCallback(request, jobID) {
 }
 
 function hmmsearchRequest(jobID, callback) {
-//    var url = "https://www.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
-    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
+    var url = "https://www.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
+//    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
 //    console.log(url);
     var data = new FormData();
     data.append("algo", "hmmsearch");
@@ -115,7 +115,7 @@ function hmmsearchCallback(request, jobID) {
 
 function delayedHmmsearchRequest(jobID, hmmsearchCallback) {
     console.log("400 Bad Request hmmsearch error, trying again ...");
-    var timeoutID = window.setTimeout(hmmsearchRequest, 1000, jobID, hmmsearchCallback);
+    var timeoutID = window.setTimeout(hmmsearchRequest, 2000, jobID, hmmsearchCallback);
 }
 
 function phmmerResultsHMMRequest(resultsURL, callback) {
@@ -130,7 +130,7 @@ function phmmerResultsHMMCallback(request) {
     var phmmerResultsHMM = request.response;	// HMM from high-scoring (above threshold) phmmer search hits
 //    console.log(phmmerResultsHMM);
     var HMMConsensusSequence = phmmerResultsHMM.split("\n").filter(function (line) {return (line.trim().split(/\s+/g).length === 26);}).map(function (line) {return line.split(/\s+/g).slice(-4, -3)[0];}).join("");
-    console.log(HMMConsensusSequence);
+//    console.log(HMMConsensusSequence);
     alignInputToHMMRequest(inputSequence, phmmerResultsHMM, alignInputToHMMCallback);
 }
 
@@ -196,6 +196,7 @@ function skylignLogoCallback(request) {
     var maxObservedInformationContent = informationContentProfile.reduce(function (a, b) {return Math.max(a, b);});
     var maxExpObservedInformationContent = Math.exp(maxObservedInformationContent);
     var maxTheoreticalInformationContent = Number(logo["max_height_theory"]);
+    plotInformationContentProfile(informationContentProfile, maxTheoreticalInformationContent);
     var normalizationMethod = document.querySelector("#scalingSelection").value;
     if (normalizationMethod === "linear") {
         var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (positionInformationContent / maxTheoreticalInformationContent);});
@@ -207,6 +208,39 @@ function skylignLogoCallback(request) {
     } else if (inputMode === "HMM") {
         calculateDomainInformationContentProfiles(normalizedInformationContentProfile, HMMInputHmmsearchDomainAlignments);
     }
+}
+
+function plotInformationContentProfile(profile, yMax) {
+    var svg = d3.select("#informationContentProfileSVG");
+    svg.append("rect")
+        .attr("width", svg.attr("width"))
+        .attr("height", svg.attr("height"))
+        .attr("fill", "white");
+    var chartMargin = {top: 20, right: 20, bottom: 30, left: 50};
+    var chartWidth = svg.attr("width") - chartMargin.left - chartMargin.right;
+    var chartHeight = svg.attr("height") - chartMargin.top - chartMargin.bottom;
+    var chart = svg.append("g")
+        .attr("transform", "translate(" + chartMargin.left + ", " + chartMargin.top + ")");
+    var x = d3.scaleLinear()
+        .range([0, chartWidth])
+        .domain([1, profile.length]);
+    var y = d3.scaleLinear()
+        .range([chartHeight, 0])
+        .domain([0, yMax]);
+    var line = d3.line()
+        .x(function (d, i) {return x(i + 1);})
+        .y(function (d) {return y(d);});
+    chart.append("g")
+        .attr("transform", "translate(0, " + chartHeight + ")")
+        .call(d3.axisBottom(x));
+    chart.append("g")
+        .call(d3.axisLeft(y));
+    chart.append("path")
+        .datum(profile)
+        .attr("fill", "none")
+        .attr("stroke", "steelblue")
+        .attr("stroke-width", 1.5)
+        .attr("d", line);
 }
 
 function calculateDomainInformationContentProfiles(hmmInformationContentProfile, domainAlignments) {
@@ -314,13 +348,13 @@ function visualizeMolecule(moleculeData, structureInformationContentProfile) {
 
 function readInputHMMFileCallback(reader, HMMFile) {
     var HMMInputHMMConsensusSequence = reader.result.split("\n").filter(function (line) {return (line.trim().split(/\s+/g).length === 26);}).map(function (line) {return line.split(/\s+/g).slice(-4, -3)[0];}).join("");
-    console.log(HMMInputHMMConsensusSequence);
+//    console.log(HMMInputHMMConsensusSequence);
     HMMInputHmmsearchRequest(HMMFile, HMMInputHmmsearchCallback);
 }
 
 function HMMInputHmmsearchRequest(HMMFile, callback) {
-//    var url = "https://www.ebi.ac.uk/Tools/hmmer/search/hmmsearch";
-    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer/search/hmmsearch";
+    var url = "https://www.ebi.ac.uk/Tools/hmmer/search/hmmsearch";
+//    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer/search/hmmsearch";
     var data = new FormData();
     data.append("algo", "hmmsearch");
     data.append("file", HMMFile);

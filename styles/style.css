@@ -1,18 +1,22 @@
 html {
-    background: #A4D5BC;
+    background: #007c82;
 }
 
 #scalingSelectionDiv {
-    background-color: #EFEB93;
+    background-color: #e2c14f;
 }
 
 #sequenceInputDiv {
-    background-color: #93C6EF;
+    background-color: #d26d6d;
     margin-top: 10px;
 }
 
 #HMMInputDiv {
-    background-color: #EF9398;
+    background-color: #56bde8;
+    margin-top: 10px;
+}
+
+#informationContentProfileSVG {
     margin-top: 10px;
 }
 
