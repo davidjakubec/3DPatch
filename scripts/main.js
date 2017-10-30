@@ -89,7 +89,7 @@ function hmmsearchCallback(request, jobID) {
         var responseURL = request.responseURL;
         console.log(responseURL);
         var hits = JSON.parse(request.response)["results"]["hits"];	// all hits, incl. high E-value
-//        console.log(hits);
+        console.log(hits);
         if (hits.length === 0) {
             throw new Error("No structures were found using hmmsearch.");
         }
@@ -97,16 +97,18 @@ function hmmsearchCallback(request, jobID) {
         for (var hit of hits) {
             var domains = hit["domains"];
             for (var domain of domains) {
-                var aliSeq = domain["aliaseq"];
-                var hmmStart = domain["alihmmfrom"];
-                var hmmEnd = domain["alihmmto"];
-                var seqStart = domain["alisqfrom"];
-                var seqName = domain["alisqname"];
-                var seqEnd = domain["alisqto"];
-                hmmsearchDomainAlignments.push([aliSeq, hmmStart, hmmEnd, seqStart, seqName, seqEnd]);
+                if (domain["is_reported"] === 1) {
+                    var aliSeq = domain["aliaseq"];
+                    var hmmStart = domain["alihmmfrom"];
+                    var hmmEnd = domain["alihmmto"];
+                    var seqStart = domain["alisqfrom"];
+                    var seqName = domain["alisqname"];
+                    var seqEnd = domain["alisqto"];
+                    hmmsearchDomainAlignments.push([aliSeq, hmmStart, hmmEnd, seqStart, seqName, seqEnd]);
+                }
             }
         }
-//        console.log(hmmsearchDomainAlignments);
+        console.log(hmmsearchDomainAlignments);
         phmmerResultsHMMRequest(responseURL, phmmerResultsHMMCallback);
     } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 400)) {
         delayedHmmsearchRequest(jobID, hmmsearchCallback);
@@ -150,7 +152,7 @@ function alignInputToHMMRequest(seq, hmm, callback) {
 function alignInputToHMMCallback(request, hmmBlob) {
     if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 200)) {
         var alignedInputSequence = request.response.split("\n")[2].split(/\s+/)[1];
-        console.log(alignedInputSequence);
+//        console.log(alignedInputSequence);
         skylignURLRequest(hmmBlob, skylignURLCallback);
     }
 }
@@ -379,13 +381,15 @@ function HMMInputHmmsearchCallback(request, HMMFile) {
         for (var hit of hits) {
             var domains = hit["domains"];
             for (var domain of domains) {
-                var aliSeq = domain["aliaseq"];
-                var hmmStart = domain["alihmmfrom"];
-                var hmmEnd = domain["alihmmto"];
-                var seqStart = domain["alisqfrom"];
-                var seqName = domain["alisqname"];
-                var seqEnd = domain["alisqto"];
-                HMMInputHmmsearchDomainAlignments.push([aliSeq, hmmStart, hmmEnd, seqStart, seqName, seqEnd]);
+                if (domain["is_reported"] === 1) {
+                    var aliSeq = domain["aliaseq"];
+                    var hmmStart = domain["alihmmfrom"];
+                    var hmmEnd = domain["alihmmto"];
+                    var seqStart = domain["alisqfrom"];
+                    var seqName = domain["alisqname"];
+                    var seqEnd = domain["alisqto"];
+                    HMMInputHmmsearchDomainAlignments.push([aliSeq, hmmStart, hmmEnd, seqStart, seqName, seqEnd]);
+                }
             }
         }
 //        console.log(HMMInputHmmsearchDomainAlignments);
@@ -421,6 +425,14 @@ function checkInputSequence(seq) {
 // MERKRGRQTYTRYQTLELEKEFHFNRYLTRRRRIEIAHALSLTERQIKIWFQNRRMKWKKEN	9ant_A
 // EQACDICRLKKLKCSKEKPKCAKCLKNNWECRYSPKTKRSPLTRAHLTEVESRLERLEQLFLLIFPREDLDMILKMDSLQ	3coq_A
 // KAERKRMRNRIAASKSRKRKLERIARLEEKVKTLKAQNSELASTANMLREQVAQLKQKVMNH	1fos_F
+
+document.querySelector("#exampleSequenceInputButton").onclick = function() {
+    document.querySelector("#sequenceInput").value = "MERKRGRQTYTRYQTLELEKEFHFNRYLTRRRRIEIAHALSLTERQIKIWFQNRRMKWKKEN";
+}
+
+document.querySelector("#clearSequenceInputButton").onclick = function() {
+    document.querySelector("#sequenceInput").value = "";
+}
 
 document.querySelector("#submitHMMButton").onclick = function() {
     window.inputMode = "HMM";

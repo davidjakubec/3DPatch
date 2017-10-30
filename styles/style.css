@@ -20,6 +20,10 @@ html {
     margin-top: 10px;
 }
 
+#domainCoverageSVG {
+    margin-top: 10px;
+}
+
 #litemol {
     width: 640px;
     height: 480px;
