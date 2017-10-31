@@ -111,11 +111,11 @@ function hmmsearchCallback(request, jobID) {
         console.log(hmmsearchDomainAlignments);
         phmmerResultsHMMRequest(responseURL, phmmerResultsHMMCallback);
     } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 400)) {
-        delayedHmmsearchRequest(jobID, hmmsearchCallback);
+        delayedHmmsearchRequest(jobID);
     }
 }
 
-function delayedHmmsearchRequest(jobID, hmmsearchCallback) {
+function delayedHmmsearchRequest(jobID) {
     console.log("400 Bad Request hmmsearch error, trying again ...");
     var timeoutID = window.setTimeout(hmmsearchRequest, 2000, jobID, hmmsearchCallback);
 }
@@ -327,7 +327,7 @@ function representativeMoleculemmCIFCallback(request, moleculeData) {
         }
     }
 //    console.log(structureInformationContentProfile);
-    visualizeMolecule(moleculeData, structureInformationContentProfile);
+//    visualizeMolecule(moleculeData, structureInformationContentProfile);
 }
 
 function visualizeMolecule(moleculeData, structureInformationContentProfile) {
