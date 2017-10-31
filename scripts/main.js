@@ -89,7 +89,7 @@ function hmmsearchCallback(request, jobID) {
         var responseURL = request.responseURL;
         console.log(responseURL);
         var hits = JSON.parse(request.response)["results"]["hits"];	// all hits, incl. high E-value
-        console.log(hits);
+//        console.log(hits);
         if (hits.length === 0) {
             throw new Error("No structures were found using hmmsearch.");
         }
@@ -258,7 +258,7 @@ function calculateDomainInformationContentProfiles(hmmInformationContentProfile,
                 domainInformationContentProfile.push(hmmInformationContentProfile[hmmStart - 1 + matchStateCount]);
                 matchStateCount += 1;
             } else {
-                domainInformationContentProfile.push(0.0);
+                domainInformationContentProfile.push("m");
             }
         }
         domainInformationContentProfiles.push([domainAlignment[4], domainAlignment[3], domainAlignment[5], domainInformationContentProfile]);
@@ -308,13 +308,13 @@ function representativeMoleculemmCIFCallback(request, moleculeData) {
     var informationContentProfileRegionResidueIndex = 0;
     for (var residue of structureResidueScheme) {
         if (residue[0] !== informationContentProfileChainId) {
-            structureResidueSchemeInformationContentProfile.push(0.0);
+            structureResidueSchemeInformationContentProfile.push("d");
         } else {
             if ((currentResidueIndex >= informationContentProfileStart) && (currentResidueIndex <= informationContentProfileEnd)) {
                 structureResidueSchemeInformationContentProfile.push(regionInformationContentProfile[informationContentProfileRegionResidueIndex]);
                 informationContentProfileRegionResidueIndex += 1;
             } else {
-                structureResidueSchemeInformationContentProfile.push(0.0);
+                structureResidueSchemeInformationContentProfile.push("m");
             }
             currentResidueIndex += 1;
         }
@@ -327,16 +327,21 @@ function representativeMoleculemmCIFCallback(request, moleculeData) {
         }
     }
 //    console.log(structureInformationContentProfile);
-//    visualizeMolecule(moleculeData, structureInformationContentProfile);
+    visualizeMolecule(moleculeData, structureInformationContentProfile);
 }
 
 function visualizeMolecule(moleculeData, structureInformationContentProfile) {
 //    console.log(conservationColorScale);
-    conservationColorScale.splice(0, 1, [0.749, 0.937, 0.561]);
     var structureInformationContentColors = ["firstEntrySkipped",];
     for (var i = 0; i < structureInformationContentProfile.length; i += 1) {
-        var colorId = Math.round(255 * structureInformationContentProfile[i]);
-        var color = {r: conservationColorScale[colorId][0], g: conservationColorScale[colorId][1], b: conservationColorScale[colorId][2]};
+        if (structureInformationContentProfile[i] === "d") {
+            var color = {r: 0.839, g: 0.910, b: 0.976};
+        } else if (structureInformationContentProfile[i] === "m") {
+            var color = {r: 0.749, g: 0.937, b: 0.561};
+        } else {
+            var colorId = Math.round(255 * structureInformationContentProfile[i]);
+            var color = {r: conservationColorScale[colorId][0], g: conservationColorScale[colorId][1], b: conservationColorScale[colorId][2]};
+        }
         structureInformationContentColors.push(color);
     }
 //    console.log(structureInformationContentColors);
