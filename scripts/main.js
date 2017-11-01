@@ -2,6 +2,14 @@
 
 /*----------------------------------------------------------------------------*/
 
+Set.prototype.union = function(setB) {
+    var union = new Set(this);
+    for (var elem of setB) {
+        union.add(elem);
+    }
+    return union;
+}
+
 Set.prototype.intersection = function(setB) {
     var intersection = new Set();
     for (var elem of setB) {
@@ -10,6 +18,14 @@ Set.prototype.intersection = function(setB) {
         }
     }
     return intersection;
+}
+
+Set.prototype.difference = function(setB) {
+    var difference = new Set(this);
+    for (var elem of setB) {
+        difference.delete(elem);
+    }
+    return difference;
 }
 
 /*
@@ -108,7 +124,7 @@ function hmmsearchCallback(request, jobID) {
                 }
             }
         }
-        console.log(hmmsearchDomainAlignments);
+//        console.log(hmmsearchDomainAlignments);
         phmmerResultsHMMRequest(responseURL, phmmerResultsHMMCallback);
     } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 400)) {
         delayedHmmsearchRequest(jobID);
@@ -246,22 +262,33 @@ function plotInformationContentProfile(profile, yMax) {
 }
 
 function calculateDomainInformationContentProfiles(hmmInformationContentProfile, domainAlignments) {
+    var coveredHmmInformationContentProfilePositions = new Set();
+    var minimumNewHmmPositions = 40;
     var domainInformationContentProfiles = [];
     for (var domainAlignment of domainAlignments) {
         var hmmStart = domainAlignment[1];
-        var matchStateCount = 0;
-        var domainInformationContentProfile = [];
-        for (var letter of domainAlignment[0]) {
-            if (letter === "-") {
-                matchStateCount += 1;
-            } else if ((letter === letter.toUpperCase()) && (letter !== "-")) {
-                domainInformationContentProfile.push(hmmInformationContentProfile[hmmStart - 1 + matchStateCount]);
-                matchStateCount += 1;
-            } else {
-                domainInformationContentProfile.push("i");
-            }
+        var hmmEnd = domainAlignment[2];
+        var hmmPositions = new Set();
+        for (var i = hmmStart; i <= hmmEnd; i += 1) {
+            hmmPositions.add(i);
         }
-        domainInformationContentProfiles.push([domainAlignment[4], domainAlignment[3], domainAlignment[5], domainInformationContentProfile]);
+        var newHmmPositions = hmmPositions.difference(coveredHmmInformationContentProfilePositions);
+        if ((coveredHmmInformationContentProfilePositions.size === 0) || (newHmmPositions.size >= minimumNewHmmPositions)) {
+            coveredHmmInformationContentProfilePositions = coveredHmmInformationContentProfilePositions.union(newHmmPositions);
+            var matchStateCount = 0;
+            var domainInformationContentProfile = [];
+            for (var letter of domainAlignment[0]) {
+                if (letter === "-") {
+                    matchStateCount += 1;
+                } else if ((letter === letter.toUpperCase()) && (letter !== "-")) {
+                    domainInformationContentProfile.push(hmmInformationContentProfile[hmmStart - 1 + matchStateCount]);
+                    matchStateCount += 1;
+                } else {
+                    domainInformationContentProfile.push("i");
+                }
+            }
+            domainInformationContentProfiles.push([domainAlignment[4], domainAlignment[3], domainAlignment[5], domainInformationContentProfile]);
+        }
     }
 //    console.log(domainInformationContentProfiles);
     var representativeMolecule = domainInformationContentProfiles[0];
