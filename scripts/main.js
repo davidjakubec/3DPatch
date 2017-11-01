@@ -258,7 +258,7 @@ function calculateDomainInformationContentProfiles(hmmInformationContentProfile,
                 domainInformationContentProfile.push(hmmInformationContentProfile[hmmStart - 1 + matchStateCount]);
                 matchStateCount += 1;
             } else {
-                domainInformationContentProfile.push("m");
+                domainInformationContentProfile.push("i");
             }
         }
         domainInformationContentProfiles.push([domainAlignment[4], domainAlignment[3], domainAlignment[5], domainInformationContentProfile]);
@@ -337,6 +337,8 @@ function visualizeMolecule(moleculeData, structureInformationContentProfile) {
         if (structureInformationContentProfile[i] === "d") {
             var color = {r: 0.839, g: 0.910, b: 0.976};
         } else if (structureInformationContentProfile[i] === "m") {
+            var color = {r: 0.749, g: 0.937, b: 0.561};
+        } else if (structureInformationContentProfile[i] === "i") {
             var color = {r: 0.749, g: 0.937, b: 0.561};
         } else {
             var colorId = Math.round(255 * structureInformationContentProfile[i]);
