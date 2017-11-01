@@ -234,7 +234,7 @@ function plotInformationContentProfile(profile, yMax) {
         .attr("width", svg.attr("width"))
         .attr("height", svg.attr("height"))
         .attr("fill", "white");
-    var chartMargin = {top: 20, right: 20, bottom: 30, left: 50};
+    var chartMargin = {top: 20, right: 20, bottom: 30, left: 40};
     var chartWidth = svg.attr("width") - chartMargin.left - chartMargin.right;
     var chartHeight = svg.attr("height") - chartMargin.top - chartMargin.bottom;
     var chart = svg.append("g")
@@ -287,13 +287,40 @@ function calculateDomainInformationContentProfiles(hmmInformationContentProfile,
                     domainInformationContentProfile.push("i");
                 }
             }
-            domainInformationContentProfiles.push([domainAlignment[4], domainAlignment[3], domainAlignment[5], domainInformationContentProfile]);
+            domainInformationContentProfiles.push([[domainAlignment[4], domainAlignment[3], domainAlignment[5], domainInformationContentProfile], {"hmmStart": hmmStart, "hmmEnd": hmmEnd}]);
         }
     }
-//    console.log(domainInformationContentProfiles);
-    var representativeMolecule = domainInformationContentProfiles[0];
+    console.log(domainInformationContentProfiles);
+    plotDomainCoverage(hmmInformationContentProfile.length, domainInformationContentProfiles);
+}
+
+function plotDomainCoverage(hmmLength, domainInformationContentProfiles) {
+    var domainCount = domainInformationContentProfiles.length;
+    var svg = d3.select("#domainCoverageSVG");
+    var chartMargin = {top: 20, right: 20, bottom: 30, left: 20};
+    var rectElementHeight = 90;
+    svg.attr("height", ((domainCount + 1) * rectElementHeight) + chartMargin.top + chartMargin.bottom);
+    svg.append("rect")
+        .attr("width", svg.attr("width"))
+        .attr("height", svg.attr("height"))
+        .attr("fill", "white");
+    var chartWidth = svg.attr("width") - chartMargin.left - chartMargin.right;
+    var chartHeight = svg.attr("height") - chartMargin.top - chartMargin.bottom;
+    var chart = svg.append("g")
+        .attr("transform", "translate(" + chartMargin.left + ", " + chartMargin.top + ")");
+    var x = d3.scaleLinear()
+        .range([0, chartWidth])
+        .domain([1, hmmLength]);
+    chart.append("g")
+        .attr("transform", "translate(0, " + chartHeight + ")")
+        .call(d3.axisBottom(x));
+
+
+/*
+    var representativeMolecule = domainInformationContentProfiles[0][0];
     console.log(representativeMolecule);
     representativeMoleculemmCIFRequest(representativeMolecule, representativeMoleculemmCIFCallback);
+*/
 }
 
 function representativeMoleculemmCIFRequest(moleculeData, callback) {
@@ -354,7 +381,7 @@ function representativeMoleculemmCIFCallback(request, moleculeData) {
         }
     }
 //    console.log(structureInformationContentProfile);
-//    visualizeMolecule(moleculeData, structureInformationContentProfile);
+    visualizeMolecule(moleculeData, structureInformationContentProfile);
 }
 
 function visualizeMolecule(moleculeData, structureInformationContentProfile) {
