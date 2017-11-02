@@ -290,7 +290,7 @@ function calculateDomainInformationContentProfiles(hmmInformationContentProfile,
             domainInformationContentProfiles.push([[domainAlignment[4], domainAlignment[3], domainAlignment[5], domainInformationContentProfile], {"hmmStart": hmmStart, "hmmEnd": hmmEnd}]);
         }
     }
-    console.log(domainInformationContentProfiles);
+//    console.log(domainInformationContentProfiles);
     plotDomainCoverage(hmmInformationContentProfile.length, domainInformationContentProfiles);
 }
 
@@ -298,8 +298,8 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles) {
     var domainCount = domainInformationContentProfiles.length;
     var svg = d3.select("#domainCoverageSVG");
     var chartMargin = {top: 20, right: 20, bottom: 30, left: 20};
-    var rectElementHeight = 90;
-    svg.attr("height", ((domainCount + 1) * rectElementHeight) + chartMargin.top + chartMargin.bottom);
+    var rectElementHeight = 50;
+    svg.attr("height", (domainCount * rectElementHeight) + chartMargin.top + chartMargin.bottom);
     svg.append("rect")
         .attr("width", svg.attr("width"))
         .attr("height", svg.attr("height"))
@@ -314,7 +314,20 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles) {
     chart.append("g")
         .attr("transform", "translate(0, " + chartHeight + ")")
         .call(d3.axisBottom(x));
-
+    var rectElementMargin = {top: 10, bottom: 10};
+    var rectElementCornerRadius = {x: 5, y: 5};
+    var domainIndex = 0;
+    for (var domain of domainInformationContentProfiles) {
+        chart.append("rect")
+            .attr("x", x(domain[1].hmmStart))
+            .attr("y", (domainIndex * rectElementHeight) + rectElementMargin.top)
+            .attr("width", x(domain[1].hmmEnd) - x(domain[1].hmmStart))
+            .attr("height", rectElementHeight - rectElementMargin.top - rectElementMargin.bottom)
+            .attr("rx", rectElementCornerRadius.x)
+            .attr("ry", rectElementCornerRadius.y)
+            .attr("fill", "MediumSeaGreen");
+        domainIndex += 1;
+    }
 
 /*
     var representativeMolecule = domainInformationContentProfiles[0][0];
