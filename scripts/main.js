@@ -325,15 +325,11 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles) {
             .attr("height", rectElementHeight - rectElementMargin.top - rectElementMargin.bottom)
             .attr("rx", rectElementCornerRadius.x)
             .attr("ry", rectElementCornerRadius.y)
-            .attr("fill", "MediumSeaGreen");
+            .attr("fill", "MediumSeaGreen")
+            .attr("domainIndex", domainIndex)
+            .on("click", function () {representativeMoleculemmCIFRequest(domainInformationContentProfiles[d3.select(this).attr("domainIndex")][0], representativeMoleculemmCIFCallback);});
         domainIndex += 1;
     }
-
-/*
-    var representativeMolecule = domainInformationContentProfiles[0][0];
-    console.log(representativeMolecule);
-    representativeMoleculemmCIFRequest(representativeMolecule, representativeMoleculemmCIFCallback);
-*/
 }
 
 function representativeMoleculemmCIFRequest(moleculeData, callback) {
