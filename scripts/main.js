@@ -28,18 +28,27 @@ Set.prototype.difference = function(setB) {
     return difference;
 }
 
-/*
-function printToInfoBox(text, wipe = false) {
-    var infoBox = document.getElementById("infoBox");
+function printToInfoBoxDiv(text, link = "", wipe = false) {
+    var infoBoxDiv = document.getElementById("infoBoxDiv");
     var newParagraph = document.createElement("p");
-    var newParagraphText = document.createTextNode(text);
+    var timeAndDate = new Date();
+    var timeAndDateString = timeAndDate.toLocaleDateString() + " " + timeAndDate.toLocaleTimeString();
+    var newParagraphText = document.createTextNode(timeAndDateString + ": " + text);
     newParagraph.appendChild(newParagraphText);
     if (wipe === true) {
-        infoBox.textContent = null;
+        infoBoxDiv.textContent = null;
     }
-    infoBox.appendChild(newParagraph);
+    if (link !== "") {
+        var separator = document.createElement("a");
+        separator.text = ": ";
+        newParagraph.appendChild(separator);
+        var newLink = document.createElement("a");
+        newLink.href = link;
+        newLink.text = link;
+        newParagraph.appendChild(newLink);
+    }
+    infoBoxDiv.appendChild(newParagraph);
 }
-*/
 
 /*----------------------------------------------------------------------------*/
 

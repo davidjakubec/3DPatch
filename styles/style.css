@@ -16,6 +16,15 @@ html {
     margin-top: 10px;
 }
 
+#infoBoxDiv {
+    background-color: #b5f6b5;
+    width: 640px;
+    height: 180px;
+    margin-top: 10px;
+    font-family: Courier;
+    overflow: auto;
+}
+
 #informationContentProfileSVG {
     margin-top: 10px;
 }
