@@ -1,4 +1,5 @@
 from matplotlib import cm
+from sys import argv
 from numpy import linspace
 
 cmap = []
@@ -9,7 +10,7 @@ for i in range(256):
 
 cmap.reverse()
 
-number_of_colors = 20
+number_of_colors = int(argv[1])
 boundaries = linspace(0, 255, number_of_colors + 1)
 color_ids = []
 
