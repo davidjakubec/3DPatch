@@ -17,11 +17,12 @@ html {
 }
 
 #infoBoxDiv {
-    background-color: #b5f6b5;
+    background-color: #8cec8c;
     width: 640px;
     height: 180px;
     margin-top: 10px;
-    font-family: Courier;
+    font-family: monospace;
+    font-size: 16px;
     overflow: auto;
 }
 

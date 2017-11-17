@@ -33,21 +33,21 @@ function printToInfoBoxDiv(text, link = "", wipe = false) {
     var newParagraph = document.createElement("p");
     var timeAndDate = new Date();
     var timeAndDateString = timeAndDate.toLocaleDateString() + " " + timeAndDate.toLocaleTimeString();
-    var newParagraphText = document.createTextNode(timeAndDateString + ": " + text);
+    var newParagraphText = document.createTextNode(timeAndDateString + " >>> " + text);
     newParagraph.appendChild(newParagraphText);
     if (wipe === true) {
         infoBoxDiv.textContent = null;
     }
     if (link !== "") {
-        var separator = document.createElement("a");
-        separator.text = ": ";
-        newParagraph.appendChild(separator);
         var newLink = document.createElement("a");
         newLink.href = link;
         newLink.text = link;
+        newLink.target = "_blank";
+        newLink.rel = "noopener noreferrer";
         newParagraph.appendChild(newLink);
     }
     infoBoxDiv.appendChild(newParagraph);
+    infoBoxDiv.scrollTop = infoBoxDiv.scrollHeight;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -63,14 +63,16 @@ function phmmerRequest(seq, seqdb, callback) {
     request.open("POST", url, true);
     request.setRequestHeader("Accept", "text/html");
     request.onreadystatechange = callback.bind(this, request);
+    printToInfoBoxDiv("Starting phmmer search against UniProt reference proteomes.");
     request.send(data);
 }
 
 function phmmerCallback(request) {
     if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 200)) {
         var responseURL = request.responseURL;
-        console.log(responseURL);
+        printToInfoBoxDiv("phmmer search against UniProt reference proteomes finished, results: ",     responseURL);
         var jobID = responseURL.split("/")[6];
+        printToInfoBoxDiv("Checking significant hits ...");
         checkSignificantHitsRequest(jobID, checkSignificantHitsCallback);
     }
 }
@@ -87,9 +89,11 @@ function checkSignificantHitsRequest(jobID, callback) {
 function checkSignificantHitsCallback(request, jobID) {
     var topResultsStats = JSON.parse(request.response)["results"]["stats"];
     if (Number(topResultsStats["nhits"]) === 0) {
+        printToInfoBoxDiv("ERROR: no hits were found using phmmer search.");
         throw new Error("No hits were found using phmmer search.");
     }
     if (Number(topResultsStats["nincluded"]) === 0) {
+        printToInfoBoxDiv("ERROR: no significant hits were found using phmmer search.");
         throw new Error("No significant hits were found using phmmer search.");
     }
     hmmsearchRequest(jobID, hmmsearchCallback);
@@ -98,7 +102,6 @@ function checkSignificantHitsCallback(request, jobID) {
 function hmmsearchRequest(jobID, callback) {
     var url = "https://www.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
 //    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
-//    console.log(url);
     var data = new FormData();
     data.append("algo", "hmmsearch");
     data.append("seqdb", "pdb");
@@ -106,17 +109,20 @@ function hmmsearchRequest(jobID, callback) {
     request.open("POST", url, true);
     request.setRequestHeader("Accept", "application/json");
     request.onreadystatechange = callback.bind(this, request, jobID);
+    printToInfoBoxDiv("Starting hmmsearch search against PDB.");
     request.send(data);
 }
 
 function hmmsearchCallback(request, jobID) {
     if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 200)) {
         var responseURL = request.responseURL;
-        console.log(responseURL);
+        printToInfoBoxDiv("hmmsearch search against PDB finished, results: ", responseURL);
         var hits = JSON.parse(request.response)["results"]["hits"];	// all hits, incl. high E-value
 //        console.log(hits);
+        printToInfoBoxDiv("Checking hits ...");
         if (hits.length === 0) {
-            throw new Error("No structures were found using hmmsearch.");
+            printToInfoBoxDiv("ERROR: no structures were found using hmmsearch search.");
+            throw new Error("No structures were found using hmmsearch search.");
         }
         window.hmmsearchDomainAlignments = [];
         for (var hit of hits) {
@@ -141,7 +147,7 @@ function hmmsearchCallback(request, jobID) {
 }
 
 function delayedHmmsearchRequest(jobID) {
-    console.log("400 Bad Request hmmsearch error, trying again ...");
+    printToInfoBoxDiv("Status 400, trying again ...");
     var timeoutID = window.setTimeout(hmmsearchRequest, 2000, jobID, hmmsearchCallback);
 }
 
@@ -150,6 +156,7 @@ function phmmerResultsHMMRequest(resultsURL, callback) {
     var request = new XMLHttpRequest();
     request.open("GET", url, true);
     request.onload = callback.bind(this, request);
+    printToInfoBoxDiv("Requesting phmmer search results HMM ...");
     request.send(null);
 }
 
@@ -171,6 +178,7 @@ function alignInputToHMMRequest(seq, hmm, callback) {
     request.setRequestHeader("Accept", "text/plain");
     var hmmBlob = new Blob([hmm], {type: "text/plain"});
     request.onreadystatechange = callback.bind(this, request, hmmBlob);
+    printToInfoBoxDiv("Aligning input sequence to the phmmer search results HMM ...");
     request.send(data);
 }
 
@@ -191,13 +199,14 @@ function skylignURLRequest(file, callback) {
     request.open("POST", url, true);
     request.setRequestHeader("Accept", "application/json");
     request.onreadystatechange = callback.bind(this, request);
+    printToInfoBoxDiv("Requesting HMM information content calculation.");
     request.send(data);
 }
 
 function skylignURLCallback(request) {
     if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 200)) {
         var responseURL = JSON.parse(request.response)["url"];
-        console.log(responseURL);
+        printToInfoBoxDiv("HMM information content calculation finished, results: ", responseURL);
         skylignLogoRequest(responseURL, skylignLogoCallback);
     }
 }
@@ -223,6 +232,7 @@ function skylignLogoCallback(request) {
     var maxObservedInformationContent = informationContentProfile.reduce(function (a, b) {return Math.max(a, b);});
     var maxExpObservedInformationContent = Math.exp(maxObservedInformationContent);
     var maxTheoreticalInformationContent = Number(logo["max_height_theory"]);
+    printToInfoBoxDiv("Plotting HMM information content profile ...");
     plotInformationContentProfile(informationContentProfile, maxTheoreticalInformationContent);
     var normalizationMethod = document.querySelector("#scalingSelection").value;
     if (normalizationMethod === "linear") {
@@ -300,6 +310,7 @@ function calculateDomainInformationContentProfiles(hmmInformationContentProfile,
         }
     }
 //    console.log(domainInformationContentProfiles);
+    printToInfoBoxDiv("Plotting HMM structure coverage ...");
     plotDomainCoverage(hmmInformationContentProfile.length, domainInformationContentProfiles);
 }
 
@@ -338,7 +349,8 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles) {
             .attr("domainIndex", domainIndex)
             .on("click", function () {
                 var moleculeData = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][0];
-                console.log(moleculeData);
+                printToInfoBoxDiv("Selected structure: " + moleculeData[0]);
+//                console.log(moleculeData);
                 representativeMoleculemmCIFRequest(moleculeData, representativeMoleculemmCIFCallback);
             });
         domainIndex += 1;
@@ -448,13 +460,14 @@ function HMMInputHmmsearchRequest(HMMFile, callback) {
     request.open("POST", url, true);
     request.setRequestHeader("Accept", "application/json");
     request.onreadystatechange = callback.bind(this, request, HMMFile);
+    printToInfoBoxDiv("Starting hmmsearch search against PDB.");
     request.send(data);
 }
 
 function HMMInputHmmsearchCallback(request, HMMFile) {
     if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 200)) {
         var responseURL = request.responseURL;
-        console.log(responseURL);
+        printToInfoBoxDiv("hmmsearch search against PDB finished, results: ", responseURL);
         var hits = JSON.parse(request.response)["results"]["hits"];	// all hits, incl. high E-value
 //        console.log(hits);
         if (hits.length === 0) {
@@ -485,7 +498,8 @@ function HMMInputHmmsearchCallback(request, HMMFile) {
 document.querySelector("#submitSequenceButton").onclick = function() {
     window.inputMode = "sequence";
     window.inputSequence = document.querySelector("#sequenceInput").value.toUpperCase().replace(/\s+/g, "");
-    console.log(inputSequence);
+    printToInfoBoxDiv("Accepted sequence (" + inputSequence.length + " residues): " + inputSequence);
+    printToInfoBoxDiv("Checking input ...");
     checkInputSequence(inputSequence);
     phmmerRequest(inputSequence, "uniprotrefprot", phmmerCallback);
 }
@@ -495,19 +509,18 @@ function checkInputSequence(seq) {
     var seqUniqueCharacters = new Set(seq);
     var nucleotides = new Set("ACGT");
     if (seqLength < 10) {
+        printToInfoBoxDiv("ERROR: input sequence must contain at least 10 characters.");
         throw new Error("Input sequence must contain at least 10 characters.");
     }
     if ((seqLength === 10) && (seqUniqueCharacters.size < 6)) {
+        printToInfoBoxDiv("ERROR: at least 6 unique characters must be present in an input sequence containing exactly 10 characters.");
         throw new Error("At least 6 unique characters must be present in an input sequence containing exactly 10 characters.");
     }
     if ((seqLength > 10) && (seqUniqueCharacters.size === (seqUniqueCharacters.intersection(nucleotides)).size)) {
+        printToInfoBoxDiv("ERROR: at least 1 character which is not A/C/G/T must be present in an input sequence containing more than 10 characters.");
         throw new Error("At least 1 character which is not A/C/G/T must be present in an input sequence containing more than 10 characters.");
     }
 }
-
-// MERKRGRQTYTRYQTLELEKEFHFNRYLTRRRRIEIAHALSLTERQIKIWFQNRRMKWKKEN	9ant_A
-// EQACDICRLKKLKCSKEKPKCAKCLKNNWECRYSPKTKRSPLTRAHLTEVESRLERLEQLFLLIFPREDLDMILKMDSLQ	3coq_A
-// KAERKRMRNRIAASKSRKRKLERIARLEEKVKTLKAQNSELASTANMLREQVAQLKQKVMNH	1fos_F
 
 document.querySelector("#exampleSequenceInputButton").onclick = function() {
     document.querySelector("#sequenceInput").value = "MERKRGRQTYTRYQTLELEKEFHFNRYLTRRRRIEIAHALSLTERQIKIWFQNRRMKWKKEN";
@@ -520,7 +533,7 @@ document.querySelector("#clearSequenceInputButton").onclick = function() {
 document.querySelector("#submitHMMButton").onclick = function() {
     window.inputMode = "HMM";
     var inputHMMFile = document.querySelector("#HMMInput").files[0];
-    console.log(inputHMMFile);
+    printToInfoBoxDiv("Accepted HMM file: " + inputHMMFile.name);
     var reader = new FileReader();
     reader.onload = readInputHMMFileCallback.bind(this, reader, inputHMMFile);
     reader.readAsText(inputHMMFile);
