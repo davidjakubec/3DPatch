@@ -233,13 +233,11 @@ function skylignLogoCallback(request) {
     savePointObject.informationContentProfile = informationContentProfile;
     var maxObservedInformationContent = informationContentProfile.reduce(function (a, b) {return Math.max(a, b);});
     var maxExpObservedInformationContent = Math.exp(maxObservedInformationContent);
-    savePointObject.maxExpObservedInformationContent = maxExpObservedInformationContent;
     var maxTheoreticalInformationContent = Number(logo["max_height_theory"]);
     savePointObject.maxTheoreticalInformationContent = maxTheoreticalInformationContent;
     printToInfoBoxDiv("Plotting HMM information content profile ...");
     plotInformationContentProfile(informationContentProfile, maxTheoreticalInformationContent);
     var normalizationMethod = document.querySelector("#scalingSelection").value;
-    savePointObject.normalizationMethod = normalizationMethod;
     if (normalizationMethod === "linear") {
         var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (positionInformationContent / maxTheoreticalInformationContent);});
     } else if (normalizationMethod === "exponential") {
@@ -506,8 +504,20 @@ function HMMInputHmmsearchCallback(request, HMMFile) {
 
 /*----------------------------------------------------------------------------*/
 
+function readInputSavePointFileCallback(reader, savePointFile) {
+    var savePoint = JSON.parse(reader.result);
+    console.log(savePoint);
+    printToInfoBoxDiv("Plotting HMM information content profile ...");
+    plotInformationContentProfile(savePoint.informationContentProfile, savePoint.maxTheoreticalInformationContent);
+    printToInfoBoxDiv("Plotting HMM structure coverage ...");
+    plotDomainCoverage(savePoint.informationContentProfile.length, savePoint.domainInformationContentProfiles);
+}
+
+/*----------------------------------------------------------------------------*/
+
 document.querySelector("#submitSequenceButton").onclick = function() {
     window.inputMode = "sequence";
+    document.querySelector("#createSavePointFileButton").disabled = true;
     window.inputSequence = document.querySelector("#sequenceInput").value.toUpperCase().replace(/\s+/g, "");
     printToInfoBoxDiv("Accepted sequence (" + inputSequence.length + " residues): " + inputSequence);
     printToInfoBoxDiv("Checking input ...");
@@ -543,9 +553,20 @@ document.querySelector("#clearSequenceInputButton").onclick = function() {
 
 document.querySelector("#submitHMMButton").onclick = function() {
     window.inputMode = "HMM";
+    document.querySelector("#createSavePointFileButton").disabled = true;
     var inputHMMFile = document.querySelector("#HMMInput").files[0];
     printToInfoBoxDiv("Accepted HMM file: " + inputHMMFile.name);
     var reader = new FileReader();
     reader.onload = readInputHMMFileCallback.bind(this, reader, inputHMMFile);
     reader.readAsText(inputHMMFile);
+}
+
+document.querySelector("#loadSavePointButton").onclick = function() {
+    window.inputMode = "savePoint";
+    document.querySelector("#createSavePointFileButton").disabled = true;
+    var inputSavePointFile = document.querySelector("#savePointInput").files[0];
+    printToInfoBoxDiv("Accepted save point file: " + inputSavePointFile.name);
+    var reader = new FileReader();
+    reader.onload = readInputSavePointFileCallback.bind(this, reader, inputSavePointFile);
+    reader.readAsText(inputSavePointFile);
 }
