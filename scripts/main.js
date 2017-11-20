@@ -1,20 +1,5 @@
 "use strict";
 
-/*
-var b = document.querySelector("#createSavePointFileButton");
-b.disabled = false;
-b.disabled = true;
-*/
-
-/*
-var e = document.querySelector("#createSavePointFileAnchor");
-var o = {a:1}
-var s = JSON.stringify(o);
-var b = new Blob([s], {type: "application/json"});
-var u = URL.createObjectURL(b);
-e.href=u
-*/
-
 /*----------------------------------------------------------------------------*/
 
 Set.prototype.union = function(setB) {
@@ -244,21 +229,26 @@ function skylignLogoCallback(request) {
         informationContentProfile.push(positionInformationContent);
     }
 //    console.log(informationContentProfile);
+    var savePointObject = new Object();
+    savePointObject.informationContentProfile = informationContentProfile;
     var maxObservedInformationContent = informationContentProfile.reduce(function (a, b) {return Math.max(a, b);});
     var maxExpObservedInformationContent = Math.exp(maxObservedInformationContent);
+    savePointObject.maxExpObservedInformationContent = maxExpObservedInformationContent;
     var maxTheoreticalInformationContent = Number(logo["max_height_theory"]);
+    savePointObject.maxTheoreticalInformationContent = maxTheoreticalInformationContent;
     printToInfoBoxDiv("Plotting HMM information content profile ...");
     plotInformationContentProfile(informationContentProfile, maxTheoreticalInformationContent);
     var normalizationMethod = document.querySelector("#scalingSelection").value;
+    savePointObject.normalizationMethod = normalizationMethod;
     if (normalizationMethod === "linear") {
         var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (positionInformationContent / maxTheoreticalInformationContent);});
     } else if (normalizationMethod === "exponential") {
         var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (Math.exp(positionInformationContent) / maxExpObservedInformationContent);});
     }
     if (inputMode === "sequence") {
-        calculateDomainInformationContentProfiles(normalizedInformationContentProfile, hmmsearchDomainAlignments);
+        calculateDomainInformationContentProfiles(normalizedInformationContentProfile, hmmsearchDomainAlignments, savePointObject);
     } else if (inputMode === "HMM") {
-        calculateDomainInformationContentProfiles(normalizedInformationContentProfile, HMMInputHmmsearchDomainAlignments);
+        calculateDomainInformationContentProfiles(normalizedInformationContentProfile, HMMInputHmmsearchDomainAlignments, savePointObject);
     }
 }
 
@@ -295,7 +285,7 @@ function plotInformationContentProfile(profile, yMax) {
         .attr("d", line);
 }
 
-function calculateDomainInformationContentProfiles(hmmInformationContentProfile, domainAlignments) {
+function calculateDomainInformationContentProfiles(hmmInformationContentProfile, domainAlignments, savePoint) {
     var coveredHmmInformationContentProfilePositions = new Set();
     var minimumNewHmmPositions = 40;
     var domainInformationContentProfiles = [];
@@ -325,6 +315,11 @@ function calculateDomainInformationContentProfiles(hmmInformationContentProfile,
         }
     }
 //    console.log(domainInformationContentProfiles);
+    savePoint.domainInformationContentProfiles = domainInformationContentProfiles;
+    var savePointBlob = new Blob([JSON.stringify(savePoint)], {type: "application/json"});
+    var savePointAnchor = document.querySelector("#createSavePointFileAnchor");
+    savePointAnchor.href = URL.createObjectURL(savePointBlob);
+    document.querySelector("#createSavePointFileButton").disabled = false;
     printToInfoBoxDiv("Plotting HMM structure coverage ...");
     plotDomainCoverage(hmmInformationContentProfile.length, domainInformationContentProfiles);
 }
