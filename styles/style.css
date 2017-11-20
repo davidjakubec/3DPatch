@@ -16,6 +16,11 @@ html {
     margin-top: 10px;
 }
 
+#savePointInputDiv {
+    background-color: #d3baed;
+    margin-top: 10px;
+}
+
 #infoBoxDiv {
     background-color: #8cec8c;
     width: 640px;
@@ -37,6 +42,6 @@ html {
 #litemol {
     width: 640px;
     height: 480px;
-    margin-top: 200px;
+    margin-top: 80px;
     position: relative;
 }

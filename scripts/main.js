@@ -1,5 +1,20 @@
 "use strict";
 
+/*
+var b = document.querySelector("#createSavePointFileButton");
+b.disabled = false;
+b.disabled = true;
+*/
+
+/*
+var e = document.querySelector("#createSavePointFileAnchor");
+var o = {a:1}
+var s = JSON.stringify(o);
+var b = new Blob([s], {type: "application/json"});
+var u = URL.createObjectURL(b);
+e.href=u
+*/
+
 /*----------------------------------------------------------------------------*/
 
 Set.prototype.union = function(setB) {
@@ -42,8 +57,8 @@ function printToInfoBoxDiv(text, link = "", wipe = false) {
         var newLink = document.createElement("a");
         newLink.href = link;
         newLink.text = link;
-        newLink.target = "_blank";
         newLink.rel = "noopener noreferrer";
+        newLink.target = "_blank";
         newParagraph.appendChild(newLink);
     }
     infoBoxDiv.appendChild(newParagraph);
@@ -355,6 +370,7 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles) {
             });
         domainIndex += 1;
     }
+    printToInfoBoxDiv("DONE !");
 }
 
 function representativeMoleculemmCIFRequest(moleculeData, callback) {
