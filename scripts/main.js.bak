@@ -329,7 +329,6 @@ function updateSavePoint(savePoint) {
 function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoint) {
     var domainCount = domainInformationContentProfiles.length;
     var svg = d3.select("#domainCoverageSVG");
-    svg.selectAll("*").remove();
     var chartMargin = {top: 20, right: 20, bottom: 30, left: 20};
     var rectElementHeight = 50;
     svg.attr("height", (domainCount * rectElementHeight) + chartMargin.top + chartMargin.bottom);
@@ -352,7 +351,6 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoi
     var domainIndex = 0;
     for (var domain of domainInformationContentProfiles) {
         chart.append("rect")
-            .attr("id", "domainCoverageRect" + domainIndex) 
             .attr("x", x(domain[1].hmmStart))
             .attr("y", (domainIndex * rectElementHeight) + rectElementMargin.top)
             .attr("width", x(domain[1].hmmEnd) - x(domain[1].hmmStart))
@@ -365,10 +363,7 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoi
                 var moleculeData = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][0];
 //                console.log(moleculeData);
                 savePoint.moleculeData = moleculeData;
-                savePoint.domainIndex = d3.select(this).attr("domainIndex");
                 updateSavePoint(savePoint);
-                chart.selectAll("rect").attr("fill", "MediumSeaGreen");
-                d3.select(this).attr("fill", "springgreen");
                 printToInfoBoxDiv("Selected structure: " + moleculeData[0]);
                 representativeMoleculemmCIFRequest(moleculeData, representativeMoleculemmCIFCallback);
             });
@@ -523,7 +518,6 @@ function readInputSavePointFileCallback(reader, savePointFile) {
     printToInfoBoxDiv("Plotting HMM structure coverage ...");
     plotDomainCoverage(savePoint.informationContentProfile.length, savePoint.domainInformationContentProfiles, savePoint);
     if (Object.keys(savePoint).indexOf("moleculeData") !== -1) {
-        d3.select("#domainCoverageRect" + savePoint.domainIndex).attr("fill", "springgreen");
         printToInfoBoxDiv("Selected structure: " + savePoint.moleculeData[0]);
         representativeMoleculemmCIFRequest(savePoint.moleculeData, representativeMoleculemmCIFCallback);
     }
