@@ -329,7 +329,6 @@ function updateSavePoint(savePoint) {
 function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoint) {
     var domainCount = domainInformationContentProfiles.length;
     var svg = d3.select("#domainCoverageSVG");
-    svg.selectAll("*").remove();
     var chartMargin = {top: 20, right: 20, bottom: 30, left: 20};
     var rectElementHeight = 50;
     svg.attr("height", (domainCount * rectElementHeight) + chartMargin.top + chartMargin.bottom);
@@ -531,7 +530,15 @@ function readInputSavePointFileCallback(reader, savePointFile) {
 
 /*----------------------------------------------------------------------------*/
 
+function initialCleanup() {
+    d3.select("#informationContentProfileSVG").selectAll("*").remove();
+    d3.select("#domainCoverageSVG").selectAll("*").remove();
+    LiteMolCallback();
+    LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#8FBFEF"});
+}
+
 document.querySelector("#submitSequenceButton").onclick = function() {
+    initialCleanup();
     window.inputMode = "sequence";
     document.querySelector("#createSavePointFileButton").disabled = true;
     window.inputSequence = document.querySelector("#sequenceInput").value.toUpperCase().replace(/\s+/g, "");
@@ -568,6 +575,7 @@ document.querySelector("#clearSequenceInputButton").onclick = function() {
 }
 
 document.querySelector("#submitHMMButton").onclick = function() {
+    initialCleanup();
     window.inputMode = "HMM";
     document.querySelector("#createSavePointFileButton").disabled = true;
     var inputHMMFile = document.querySelector("#HMMInput").files[0];
@@ -578,6 +586,7 @@ document.querySelector("#submitHMMButton").onclick = function() {
 }
 
 document.querySelector("#loadSavePointButton").onclick = function() {
+    initialCleanup();
     window.inputMode = "savePoint";
     document.querySelector("#createSavePointFileButton").disabled = true;
     var inputSavePointFile = document.querySelector("#savePointInput").files[0];
