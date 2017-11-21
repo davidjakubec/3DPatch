@@ -314,15 +314,19 @@ function calculateDomainInformationContentProfiles(hmmInformationContentProfile,
     }
 //    console.log(domainInformationContentProfiles);
     savePoint.domainInformationContentProfiles = domainInformationContentProfiles;
+    updateSavePoint(savePoint);
+    document.querySelector("#createSavePointFileButton").disabled = false;
+    printToInfoBoxDiv("Plotting HMM structure coverage ...");
+    plotDomainCoverage(hmmInformationContentProfile.length, domainInformationContentProfiles, savePoint);
+}
+
+function updateSavePoint(savePoint) {
     var savePointBlob = new Blob([JSON.stringify(savePoint)], {type: "application/json"});
     var savePointAnchor = document.querySelector("#createSavePointFileAnchor");
     savePointAnchor.href = URL.createObjectURL(savePointBlob);
-    document.querySelector("#createSavePointFileButton").disabled = false;
-    printToInfoBoxDiv("Plotting HMM structure coverage ...");
-    plotDomainCoverage(hmmInformationContentProfile.length, domainInformationContentProfiles);
 }
 
-function plotDomainCoverage(hmmLength, domainInformationContentProfiles) {
+function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoint) {
     var domainCount = domainInformationContentProfiles.length;
     var svg = d3.select("#domainCoverageSVG");
     var chartMargin = {top: 20, right: 20, bottom: 30, left: 20};
@@ -357,8 +361,10 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles) {
             .attr("domainIndex", domainIndex)
             .on("click", function () {
                 var moleculeData = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][0];
-                printToInfoBoxDiv("Selected structure: " + moleculeData[0]);
 //                console.log(moleculeData);
+                savePoint.moleculeData = moleculeData;
+                updateSavePoint(savePoint);
+                printToInfoBoxDiv("Selected structure: " + moleculeData[0]);
                 representativeMoleculemmCIFRequest(moleculeData, representativeMoleculemmCIFCallback);
             });
         domainIndex += 1;
@@ -506,11 +512,15 @@ function HMMInputHmmsearchCallback(request, HMMFile) {
 
 function readInputSavePointFileCallback(reader, savePointFile) {
     var savePoint = JSON.parse(reader.result);
-    console.log(savePoint);
+//    console.log(savePoint);
     printToInfoBoxDiv("Plotting HMM information content profile ...");
     plotInformationContentProfile(savePoint.informationContentProfile, savePoint.maxTheoreticalInformationContent);
     printToInfoBoxDiv("Plotting HMM structure coverage ...");
-    plotDomainCoverage(savePoint.informationContentProfile.length, savePoint.domainInformationContentProfiles);
+    plotDomainCoverage(savePoint.informationContentProfile.length, savePoint.domainInformationContentProfiles, savePoint);
+    if (Object.keys(savePoint).indexOf("moleculeData") !== -1) {
+        printToInfoBoxDiv("Selected structure: " + savePoint.moleculeData[0]);
+        representativeMoleculemmCIFRequest(savePoint.moleculeData, representativeMoleculemmCIFCallback);
+    }
 }
 
 /*----------------------------------------------------------------------------*/
