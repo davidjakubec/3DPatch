@@ -9,16 +9,6 @@
         <script src="LiteMol/js/LiteMol-plugin.js"></script>
     </head>
     <body>
-        <div id="scalingSelectionDiv">
-            <label>Select information content color scaling:
-                <select id="scalingSelection" required>
-                    <option value="linearAbsolute" selected>Linear (absolute)</option>
-                    <option value="linearRelative">Linear (relative)</option>
-                    <option value="exponentialAbsolute">Exponential (absolute)</option>
-                    <option value="exponentialRelative">Exponential (relative)</option>
-                </select>
-            </label>
-        </div>
         <div id="sequenceInputDiv">
             <label>Enter a protein sequence ...
                 <input id="sequenceInput" type="text">
@@ -39,8 +29,19 @@
                 <button id="loadSavePointButton">Load save point</button>
             </label>
             <label>
-                <a id="createSavePointFileAnchor" download="savePoint.json" href=""><button id="createSavePointFileButton" autocomplete="off" disabled=true>Create save point file</button></a> 
+                <a id="createSavePointFileAnchor" download="savePoint.json" href=""><button id="createSavePointFileButton" autocomplete="off" disabled=true>Create save point file</button></a>
             </label>
+        </div>
+        <div id="scalingSelectionDiv">
+            <label>Select information content color scaling:
+                <select id="scalingSelection" required>
+                    <option value="linearAbsolute" selected>Linear (absolute)</option>
+                    <option value="linearRelative">Linear (relative)</option>
+                    <option value="exponentialAbsolute">Exponential (absolute)</option>
+                    <option value="exponentialRelative">Exponential (relative)</option>
+                </select>
+            </label>
+            <button id="applyScalingButton" autocomplete="off" disabled=true>Apply scaling</button>
         </div>
         <div id="infoBoxDiv"></div>
         <svg id="informationContentProfileSVG" width="640" height="180"></svg>

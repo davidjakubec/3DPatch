@@ -220,19 +220,15 @@ function skylignLogoRequest(resultsURL, callback) {
 }
 
 function skylignLogoCallback(request) {
-    window.logo = JSON.parse(request.response);
+    var logo = JSON.parse(request.response);
 //    console.log(logo);
-    window.informationContentProfile = [];
+    var informationContentProfile = [];
     for (var i = 0; i < logo["height_arr"].length; i += 1) {
         var positionLetterHeights = logo["height_arr"][i];
         var positionInformationContent = (positionLetterHeights.map(function (letter) {return Number(letter.split(":")[1]);})).reduce(function (a, b) {return a + b;}, 0);
         informationContentProfile.push(positionInformationContent);
     }
 //    console.log(informationContentProfile);
-    normalizeInformationContentProfile();
-}
-
-function normalizeInformationContentProfile() {
     var savePointObject = new Object();
     savePointObject.informationContentProfile = informationContentProfile;
     var maxObservedInformationContent = informationContentProfile.reduce(function (a, b) {return Math.max(a, b);});
@@ -243,7 +239,6 @@ function normalizeInformationContentProfile() {
     printToInfoBoxDiv("Plotting HMM information content profile ...");
     plotInformationContentProfile(informationContentProfile, maxTheoreticalInformationContent);
     var normalizationMethod = document.querySelector("#scalingSelection").value;
-    savePointObject.normalizationMethod = normalizationMethod;
     if (normalizationMethod === "linearAbsolute") {
         var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (positionInformationContent / maxTheoreticalInformationContent);});
     } else if (normalizationMethod === "linearRelative") {
@@ -326,7 +321,6 @@ function calculateDomainInformationContentProfiles(hmmInformationContentProfile,
     savePoint.domainInformationContentProfiles = domainInformationContentProfiles;
     updateSavePoint(savePoint);
     document.querySelector("#createSavePointFileButton").disabled = false;
-    document.querySelector("#applyScalingButton").disabled = false;
     printToInfoBoxDiv("Plotting HMM structure coverage ...");
     plotDomainCoverage(hmmInformationContentProfile.length, domainInformationContentProfiles, savePoint);
 }
@@ -467,7 +461,7 @@ function visualizeMolecule(moleculeData, structureInformationContentProfile) {
 //    console.log(structureInformationContentColors);
     var pdbId = moleculeData[0].split("_")[0];
     LiteMolCallback(structureInformationContentColors);
-    var plugin = LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#FFFFFF"});
+    var plugin = LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#8FBFEF"});
     plugin.loadMolecule({id: pdbId, url: "https://www.ebi.ac.uk/pdbe/static/entry/" + pdbId + "_updated.cif", format: "cif"});
 }
 
@@ -528,7 +522,6 @@ function HMMInputHmmsearchCallback(request, HMMFile) {
 function readInputSavePointFileCallback(reader, savePointFile) {
     var savePoint = JSON.parse(reader.result);
 //    console.log(savePoint);
-    document.querySelector("#scalingSelection").value = savePoint.normalizationMethod;
     printToInfoBoxDiv("Plotting HMM information content profile ...");
     plotInformationContentProfile(savePoint.informationContentProfile, savePoint.maxTheoreticalInformationContent);
     printToInfoBoxDiv("Plotting HMM structure coverage ...");
@@ -544,14 +537,11 @@ function readInputSavePointFileCallback(reader, savePointFile) {
 
 function initialSetup() {
     document.querySelector("#createSavePointFileButton").disabled = true;
-    document.querySelector("#applyScalingButton").disabled = true;
     d3.select("#informationContentProfileSVG").selectAll("*").remove();
     d3.select("#domainCoverageSVG").selectAll("*").remove();
     LiteMolCallback();
-    LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#FFFFFF"});
+    LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#8FBFEF"});
 }
-
-initialSetup();
 
 document.querySelector("#submitSequenceButton").onclick = function() {
     initialSetup();
@@ -607,9 +597,4 @@ document.querySelector("#loadSavePointButton").onclick = function() {
     var reader = new FileReader();
     reader.onload = readInputSavePointFileCallback.bind(this, reader, inputSavePointFile);
     reader.readAsText(inputSavePointFile);
-}
-
-document.querySelector("#applyScalingButton").onclick = function() {
-    initialSetup();
-    normalizeInformationContentProfile();
 }

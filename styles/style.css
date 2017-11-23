@@ -1,28 +1,28 @@
 html {
-    background: #007c82;
-}
-
-#scalingSelectionDiv {
-    background-color: #e2c14f;
+    background: #007C82;
 }
 
 #sequenceInputDiv {
-    background-color: #d26d6d;
-    margin-top: 10px;
+    background-color: #D26D6D;
 }
 
 #HMMInputDiv {
-    background-color: #56bde8;
+    background-color: #56BDE8;
     margin-top: 10px;
 }
 
 #savePointInputDiv {
-    background-color: #d3baed;
+    background-color: #D3BAED;
+    margin-top: 10px;
+}
+
+#scalingSelectionDiv {
+    background-color: #E2C14F;
     margin-top: 10px;
 }
 
 #infoBoxDiv {
-    background-color: #8cec8c;
+    background-color: #8CEC8C;
     width: 640px;
     height: 180px;
     margin-top: 10px;
