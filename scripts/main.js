@@ -235,12 +235,17 @@ function skylignLogoCallback(request) {
     var maxExpObservedInformationContent = Math.exp(maxObservedInformationContent);
     var maxTheoreticalInformationContent = Number(logo["max_height_theory"]);
     savePointObject.maxTheoreticalInformationContent = maxTheoreticalInformationContent;
+    var maxExpTheoreticalInformationContent = Math.exp(maxTheoreticalInformationContent);
     printToInfoBoxDiv("Plotting HMM information content profile ...");
     plotInformationContentProfile(informationContentProfile, maxTheoreticalInformationContent);
     var normalizationMethod = document.querySelector("#scalingSelection").value;
-    if (normalizationMethod === "linear") {
+    if (normalizationMethod === "linearAbsolute") {
         var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (positionInformationContent / maxTheoreticalInformationContent);});
-    } else if (normalizationMethod === "exponential") {
+    } else if (normalizationMethod === "linearRelative") {
+        var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (positionInformationContent / maxObservedInformationContent);});
+    } else if (normalizationMethod === "exponentialAbsolute") {
+        var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (Math.exp(positionInformationContent) / maxExpTheoreticalInformationContent);});
+    } else if (normalizationMethod === "exponentialRelative") {
         var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (Math.exp(positionInformationContent) / maxExpObservedInformationContent);});
     }
     if (inputMode === "sequence") {
