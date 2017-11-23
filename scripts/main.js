@@ -220,19 +220,20 @@ function skylignLogoRequest(resultsURL, callback) {
 }
 
 function skylignLogoCallback(request) {
-    window.logo = JSON.parse(request.response);
+    var logo = JSON.parse(request.response);
 //    console.log(logo);
-    window.informationContentProfile = [];
+    var informationContentProfile = [];
     for (var i = 0; i < logo["height_arr"].length; i += 1) {
         var positionLetterHeights = logo["height_arr"][i];
         var positionInformationContent = (positionLetterHeights.map(function (letter) {return Number(letter.split(":")[1]);})).reduce(function (a, b) {return a + b;}, 0);
         informationContentProfile.push(positionInformationContent);
     }
 //    console.log(informationContentProfile);
+    window.normalizeInformationContentProfile = normalizeInformationContentProfileCallback.bind(this, logo, informationContentProfile);
     normalizeInformationContentProfile();
 }
 
-function normalizeInformationContentProfile() {
+function normalizeInformationContentProfileCallback(logo, informationContentProfile) {
     var savePointObject = new Object();
     savePointObject.informationContentProfile = informationContentProfile;
     var maxObservedInformationContent = informationContentProfile.reduce(function (a, b) {return Math.max(a, b);});
