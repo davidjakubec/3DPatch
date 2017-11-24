@@ -467,8 +467,9 @@ function visualizeMolecule(moleculeData, structureInformationContentProfile) {
     }
 //    console.log(structureInformationContentColors);
     var pdbId = moleculeData[0].split("_")[0];
+    plugin.destroy();
     LiteMolCallback(structureInformationContentColors);
-    var plugin = LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#FFFFFF"});
+    window.plugin = LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#FFFFFF"});
     plugin.loadMolecule({id: pdbId, url: "https://www.ebi.ac.uk/pdbe/static/entry/" + pdbId + "_updated.cif", format: "cif"});
 }
 
@@ -548,11 +549,17 @@ function initialSetup() {
     document.querySelector("#applyScalingButton").disabled = true;
     d3.select("#informationContentProfileSVG").selectAll("*").remove();
     d3.select("#domainCoverageSVG").selectAll("*").remove();
+    if (window.plugin) {
+        plugin.destroy();
+    }
     LiteMolCallback();
-    LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#FFFFFF"});
+    window.plugin = LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#FFFFFF"});
 }
 
 initialSetup();
+document.querySelector("#scalingSelection").value = "linearAbsolute";
+
+/*----------------------------------------------------------------------------*/
 
 document.querySelector("#submitSequenceButton").onclick = function() {
     initialSetup();
