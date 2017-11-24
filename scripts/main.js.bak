@@ -383,19 +383,6 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoi
                 printToInfoBoxDiv("Selected structure: " + moleculeData[0]);
                 representativeMoleculemmCIFRequest(moleculeData, representativeMoleculemmCIFCallback);
             });
-        var label = chart.append("text")
-            .text(domain[0][0])
-            .style("pointer-events", "none")
-            .attr("fill", "white")
-            .attr("font-family", "monospace")
-            .attr("font-size", 16)
-            .attr("text-anchor", "middle")
-            .attr("x", Number(d3.select("#domainCoverageRect" + domainIndex).attr("x")) + (Number(d3.select("#domainCoverageRect" + domainIndex).attr("width")) / 2))
-            .attr("y", Number(d3.select("#domainCoverageRect" + domainIndex).attr("y")) + rectElementHeight - rectElementMargin.top - rectElementMargin.bottom - 9);
-        if (Number(d3.select("#domainCoverageRect" + domainIndex).attr("width")) < 72) {
-            label.attr("lengthAdjust", "spacingAndGlyphs");
-            label.attr("textLength", Number(d3.select("#domainCoverageRect" + domainIndex).attr("width")) - 2);
-        } 
         domainIndex += 1;
     }
     printToInfoBoxDiv("DONE !");
