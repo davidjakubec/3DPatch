@@ -28,16 +28,13 @@ Set.prototype.difference = function(setB) {
     return difference;
 }
 
-function printToInfoBoxDiv(text, link = "", wipe = false) {
+function printToInfoBoxDiv(text, link = "") {
     var infoBoxDiv = document.getElementById("infoBoxDiv");
     var newParagraph = document.createElement("p");
     var timeAndDate = new Date();
     var timeAndDateString = timeAndDate.toLocaleDateString() + " " + timeAndDate.toLocaleTimeString();
     var newParagraphText = document.createTextNode(timeAndDateString + " >>> " + text);
     newParagraph.appendChild(newParagraphText);
-    if (wipe === true) {
-        infoBoxDiv.textContent = null;
-    }
     if (link !== "") {
         var newLink = document.createElement("a");
         newLink.href = link;
@@ -48,6 +45,16 @@ function printToInfoBoxDiv(text, link = "", wipe = false) {
     }
     infoBoxDiv.appendChild(newParagraph);
     infoBoxDiv.scrollTop = infoBoxDiv.scrollHeight;
+}
+
+function printToSequenceAlignmentDiv(text, color = "black") {
+    var sequenceAlignmentDiv = document.getElementById("sequenceAlignmentDiv");
+    var newParagraph = document.createElement("p");
+    newParagraph.style.lineHeight = "8px";
+    newParagraph.style.color = color;
+    var newParagraphText = document.createTextNode(text);
+    newParagraph.appendChild(newParagraphText);
+    sequenceAlignmentDiv.appendChild(newParagraph);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -166,7 +173,7 @@ function phmmerResultsHMMRequest(resultsURL, callback) {
 function phmmerResultsHMMCallback(request) {
     var phmmerResultsHMM = request.response;	// HMM from high-scoring (above threshold) phmmer search hits
 //    console.log(phmmerResultsHMM);
-    var HMMConsensusSequence = phmmerResultsHMM.split("\n").filter(function (line) {return (line.trim().split(/\s+/g).length === 26);}).map(function (line) {return line.split(/\s+/g).slice(-4, -3)[0];}).join("");
+    window.HMMConsensusSequence = phmmerResultsHMM.split("\n").filter(function (line) {return (line.trim().split(/\s+/g).length === 26);}).map(function (line) {return line.split(/\s+/g).slice(-4, -3)[0];}).join("");
 //    console.log(HMMConsensusSequence);
     alignInputToHMMRequest(inputSequence, phmmerResultsHMM, alignInputToHMMCallback);
 }
@@ -187,7 +194,7 @@ function alignInputToHMMRequest(seq, hmm, callback) {
 
 function alignInputToHMMCallback(request, hmmBlob) {
     if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 200)) {
-        var alignedInputSequence = request.response.split("\n")[2].split(/\s+/)[1];
+        window.alignedInputSequence = request.response.split("\n")[2].split(/\s+/)[1];
 //        console.log(alignedInputSequence);
         skylignURLRequest(hmmBlob, skylignURLCallback);
     }
@@ -238,6 +245,12 @@ function skylignLogoCallback(request) {
 
 function normalizeInformationContentProfileCallback(logo, informationContentProfile) {
     var savePointObject = new Object();
+    savePointObject.HMMConsensusSequence = HMMConsensusSequence;
+    printToSequenceAlignmentDiv(HMMConsensusSequence);
+    if (inputMode === "sequence") {
+        savePointObject.alignedInputSequence = alignedInputSequence;
+        printToSequenceAlignmentDiv(alignedInputSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join(""));
+    }
     savePointObject.informationContentProfile = informationContentProfile;
     var maxObservedInformationContent = informationContentProfile.reduce(function (a, b) {return Math.max(a, b);});
     var maxExpObservedInformationContent = Math.exp(maxObservedInformationContent);
@@ -493,8 +506,8 @@ function visualizeMolecule(moleculeData, structureInformationContentProfile) {
 /*----------------------------------------------------------------------------*/
 
 function readInputHMMFileCallback(reader, HMMFile) {
-    var HMMInputHMMConsensusSequence = reader.result.split("\n").filter(function (line) {return (line.trim().split(/\s+/g).length === 26);}).map(function (line) {return line.split(/\s+/g).slice(-4, -3)[0];}).join("");
-//    console.log(HMMInputHMMConsensusSequence);
+    window.HMMConsensusSequence = reader.result.split("\n").filter(function (line) {return (line.trim().split(/\s+/g).length === 26);}).map(function (line) {return line.split(/\s+/g).slice(-4, -3)[0];}).join("");
+//    console.log(HMMConsensusSequence);
     HMMInputHmmsearchRequest(HMMFile, HMMInputHmmsearchCallback);
 }
 
@@ -549,6 +562,10 @@ function readInputSavePointFileCallback(reader, savePointFile) {
     var savePoint = JSON.parse(reader.result);
 //    console.log(savePoint);
     document.querySelector("#scalingSelection").value = savePoint.normalizationMethod;
+    printToSequenceAlignmentDiv(savePoint.HMMConsensusSequence);
+    if (savePoint.alignedInputSequence) {
+        printToSequenceAlignmentDiv(savePoint.alignedInputSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join(""));
+    }
     printToInfoBoxDiv("Plotting HMM information content profile ...");
     plotInformationContentProfile(savePoint.informationContentProfile, savePoint.maxTheoreticalInformationContent);
     enableInputButtons();
@@ -568,6 +585,7 @@ function initialize() {
     document.querySelector("#applyScalingButton").disabled = true;
     d3.select("#informationContentProfileSVG").selectAll("*").remove();
     d3.select("#domainCoverageSVG").selectAll("*").remove();
+    d3.select("#sequenceAlignmentDiv").selectAll("*").remove();
     if (window.plugin) {
         plugin.destroy();
     }
@@ -582,12 +600,14 @@ function disableInputButtons() {
     document.querySelector("#submitSequenceButton").disabled = true;
     document.querySelector("#submitHMMButton").disabled = true;
     document.querySelector("#loadSavePointButton").disabled = true;
+    document.querySelector("#scalingSelection").disabled = true;
 }
 
 function enableInputButtons() {
     document.querySelector("#submitSequenceButton").disabled = false;
     document.querySelector("#submitHMMButton").disabled = false;
     document.querySelector("#loadSavePointButton").disabled = false;
+    document.querySelector("#scalingSelection").disabled = false;
 }
 
 /*----------------------------------------------------------------------------*/
