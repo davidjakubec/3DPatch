@@ -90,10 +90,12 @@ function checkSignificantHitsCallback(request, jobID) {
     var topResultsStats = JSON.parse(request.response)["results"]["stats"];
     if (Number(topResultsStats["nhits"]) === 0) {
         printToInfoBoxDiv("ERROR: no hits were found using phmmer search.");
+        enableInputButtons();
         throw new Error("No hits were found using phmmer search.");
     }
     if (Number(topResultsStats["nincluded"]) === 0) {
         printToInfoBoxDiv("ERROR: no significant hits were found using phmmer search.");
+        enableInputButtons();
         throw new Error("No significant hits were found using phmmer search.");
     }
     hmmsearchRequest(jobID, hmmsearchCallback);
@@ -122,6 +124,7 @@ function hmmsearchCallback(request, jobID) {
         printToInfoBoxDiv("Checking hits ...");
         if (hits.length === 0) {
             printToInfoBoxDiv("ERROR: no structures were found using hmmsearch search.");
+            enableInputButtons();
             throw new Error("No structures were found using hmmsearch search.");
         }
         window.hmmsearchDomainAlignments = [];
@@ -328,6 +331,7 @@ function calculateDomainInformationContentProfiles(hmmInformationContentProfile,
     updateSavePoint(savePoint);
     document.querySelector("#createSavePointFileButton").disabled = false;
     document.querySelector("#applyScalingButton").disabled = false;
+    enableInputButtons();
     printToInfoBoxDiv("Plotting HMM structure coverage ...");
     plotDomainCoverage(hmmInformationContentProfile.length, domainInformationContentProfiles, savePoint);
 }
@@ -516,6 +520,7 @@ function HMMInputHmmsearchCallback(request, HMMFile) {
         var hits = JSON.parse(request.response)["results"]["hits"];	// all hits, incl. high E-value
 //        console.log(hits);
         if (hits.length === 0) {
+            enableInputButtons();
             throw new Error("No structures were found using hmmsearch.");
         }
         window.HMMInputHmmsearchDomainAlignments = [];
@@ -546,6 +551,7 @@ function readInputSavePointFileCallback(reader, savePointFile) {
     document.querySelector("#scalingSelection").value = savePoint.normalizationMethod;
     printToInfoBoxDiv("Plotting HMM information content profile ...");
     plotInformationContentProfile(savePoint.informationContentProfile, savePoint.maxTheoreticalInformationContent);
+    enableInputButtons();
     printToInfoBoxDiv("Plotting HMM structure coverage ...");
     plotDomainCoverage(savePoint.informationContentProfile.length, savePoint.domainInformationContentProfiles, savePoint);
     if (Object.keys(savePoint).indexOf("moleculeData") !== -1) {
@@ -572,10 +578,23 @@ function initialize() {
 initialize();
 document.querySelector("#scalingSelection").value = "linearAbsolute";
 
+function disableInputButtons() {
+    document.querySelector("#submitSequenceButton").disabled = true;
+    document.querySelector("#submitHMMButton").disabled = true;
+    document.querySelector("#loadSavePointButton").disabled = true;
+}
+
+function enableInputButtons() {
+    document.querySelector("#submitSequenceButton").disabled = false;
+    document.querySelector("#submitHMMButton").disabled = false;
+    document.querySelector("#loadSavePointButton").disabled = false;
+}
+
 /*----------------------------------------------------------------------------*/
 
 document.querySelector("#submitSequenceButton").onclick = function() {
     initialize();
+    disableInputButtons();
     window.inputMode = "sequence";
     window.inputSequence = document.querySelector("#sequenceInput").value.toUpperCase().replace(/\s+/g, "");
     printToInfoBoxDiv("Accepted sequence (" + inputSequence.length + " residues): " + inputSequence);
@@ -590,14 +609,17 @@ function checkInputSequence(seq) {
     var nucleotides = new Set("ACGT");
     if (seqLength < 10) {
         printToInfoBoxDiv("ERROR: input sequence must contain at least 10 characters.");
+        enableInputButtons();
         throw new Error("Input sequence must contain at least 10 characters.");
     }
     if ((seqLength === 10) && (seqUniqueCharacters.size < 6)) {
         printToInfoBoxDiv("ERROR: at least 6 unique characters must be present in an input sequence containing exactly 10 characters.");
+        enableInputButtons();
         throw new Error("At least 6 unique characters must be present in an input sequence containing exactly 10 characters.");
     }
     if ((seqLength > 10) && (seqUniqueCharacters.size === (seqUniqueCharacters.intersection(nucleotides)).size)) {
         printToInfoBoxDiv("ERROR: at least 1 character which is not A/C/G/T must be present in an input sequence containing more than 10 characters.");
+        enableInputButtons();
         throw new Error("At least 1 character which is not A/C/G/T must be present in an input sequence containing more than 10 characters.");
     }
 }
@@ -612,6 +634,7 @@ document.querySelector("#clearSequenceInputButton").onclick = function() {
 
 document.querySelector("#submitHMMButton").onclick = function() {
     initialize();
+    disableInputButtons();
     window.inputMode = "HMM";
     var inputHMMFile = document.querySelector("#HMMInput").files[0];
     printToInfoBoxDiv("Accepted HMM file: " + inputHMMFile.name);
@@ -622,6 +645,7 @@ document.querySelector("#submitHMMButton").onclick = function() {
 
 document.querySelector("#loadSavePointButton").onclick = function() {
     initialize();
+    disableInputButtons();
     window.inputMode = "savePoint";
     var inputSavePointFile = document.querySelector("#savePointInput").files[0];
     printToInfoBoxDiv("Accepted save point file: " + inputSavePointFile.name);

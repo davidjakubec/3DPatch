@@ -12,7 +12,7 @@
         <div id="sequenceInputDiv">
             <label>Enter a protein sequence ...
                 <input id="sequenceInput" type="text">
-                <button id="submitSequenceButton">Submit sequence</button>
+                <button id="submitSequenceButton" autocomplete="off">Submit sequence</button>
                 <button id="exampleSequenceInputButton">Example</button>
                 <button id="clearSequenceInputButton">Clear</button>
             </label>
@@ -20,13 +20,13 @@
         <div id=HMMInputDiv>
             <label>... upload an HMM file ...
                 <input id="HMMInput" type="file">
-                <button id="submitHMMButton">Submit HMM</button>
+                <button id="submitHMMButton" autocomplete="off">Submit HMM</button>
             </label>
         </div>
         <div id="savePointInputDiv">
             <label>... or load state from save point file
                 <input id="savePointInput" type="file">
-                <button id="loadSavePointButton">Load save point</button>
+                <button id="loadSavePointButton" autocomplete="off">Load save point</button>
             </label>
             <label>
                 <a id="createSavePointFileAnchor" download="savePoint.json" href=""><button id="createSavePointFileButton" autocomplete="off" disabled=true>Create save point file</button></a>
