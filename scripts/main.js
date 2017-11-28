@@ -28,6 +28,8 @@ Set.prototype.difference = function(setB) {
     return difference;
 }
 
+/*----------------------------------------------------------------------------*/
+
 function printToInfoBoxDiv(text, link = "") {
     var infoBoxDiv = document.getElementById("infoBoxDiv");
     var newParagraph = document.createElement("p");
@@ -47,14 +49,116 @@ function printToInfoBoxDiv(text, link = "") {
     infoBoxDiv.scrollTop = infoBoxDiv.scrollHeight;
 }
 
-function printToSequenceAlignmentDiv(text, color = "black") {
+function printToSequenceAlignmentDiv(text, id = "", color = "black") {
     var sequenceAlignmentDiv = document.getElementById("sequenceAlignmentDiv");
     var newParagraph = document.createElement("p");
+    newParagraph.id = id;
     newParagraph.style.lineHeight = "8px";
     newParagraph.style.color = color;
     var newParagraphText = document.createTextNode(text);
     newParagraph.appendChild(newParagraphText);
     sequenceAlignmentDiv.appendChild(newParagraph);
+}
+
+/*----------------------------------------------------------------------------*/
+
+function initialize() {
+    document.querySelector("#createSavePointFileButton").disabled = true;
+    document.querySelector("#applyScalingButton").disabled = true;
+    d3.select("#informationContentProfileSVG").selectAll("*").remove();
+    d3.select("#domainCoverageSVG").selectAll("*").remove();
+    d3.select("#sequenceAlignmentDiv").selectAll("*").remove();
+    if (window.plugin) {
+        plugin.destroy();
+    }
+    LiteMolCallback();
+    window.plugin = LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#FFFFFF"});
+}
+
+initialize();
+document.querySelector("#scalingSelection").value = "linearAbsolute";
+
+function disableInputButtons() {
+    document.querySelector("#submitSequenceButton").disabled = true;
+    document.querySelector("#submitHMMButton").disabled = true;
+    document.querySelector("#loadSavePointButton").disabled = true;
+    document.querySelector("#scalingSelection").disabled = true;
+}
+
+function enableInputButtons() {
+    document.querySelector("#submitSequenceButton").disabled = false;
+    document.querySelector("#submitHMMButton").disabled = false;
+    document.querySelector("#loadSavePointButton").disabled = false;
+    document.querySelector("#scalingSelection").disabled = false;
+}
+
+/*----------------------------------------------------------------------------*/
+
+document.querySelector("#submitSequenceButton").onclick = function() {
+    initialize();
+    disableInputButtons();
+    window.inputMode = "sequence";
+    window.inputSequence = document.querySelector("#sequenceInput").value.toUpperCase().replace(/\s+/g, "");
+    printToInfoBoxDiv("Accepted sequence (" + inputSequence.length + " residues): " + inputSequence);
+    printToInfoBoxDiv("Checking input ...");
+    checkInputSequence(inputSequence);
+    phmmerRequest(inputSequence, "uniprotrefprot", phmmerCallback);
+}
+
+function checkInputSequence(seq) {
+    var seqLength = seq.length;
+    var seqUniqueCharacters = new Set(seq);
+    var nucleotides = new Set("ACGT");
+    if (seqLength < 10) {
+        printToInfoBoxDiv("ERROR: input sequence must contain at least 10 characters.");
+        enableInputButtons();
+        throw new Error("Input sequence must contain at least 10 characters.");
+    }
+    if ((seqLength === 10) && (seqUniqueCharacters.size < 6)) {
+        printToInfoBoxDiv("ERROR: at least 6 unique characters must be present in an input sequence containing exactly 10 characters.");
+        enableInputButtons();
+        throw new Error("At least 6 unique characters must be present in an input sequence containing exactly 10 characters.");
+    }
+    if ((seqLength > 10) && (seqUniqueCharacters.size === (seqUniqueCharacters.intersection(nucleotides)).size)) {
+        printToInfoBoxDiv("ERROR: at least 1 character which is not A/C/G/T must be present in an input sequence containing more than 10 characters.");
+        enableInputButtons();
+        throw new Error("At least 1 character which is not A/C/G/T must be present in an input sequence containing more than 10 characters.");
+    }
+}
+
+document.querySelector("#exampleSequenceInputButton").onclick = function() {
+    document.querySelector("#sequenceInput").value = "MERKRGRQTYTRYQTLELEKEFHFNRYLTRRRRIEIAHALSLTERQIKIWFQNRRMKWKKEN";
+}
+
+document.querySelector("#clearSequenceInputButton").onclick = function() {
+    document.querySelector("#sequenceInput").value = "";
+}
+
+document.querySelector("#submitHMMButton").onclick = function() {
+    initialize();
+    disableInputButtons();
+    window.inputMode = "HMM";
+    var inputHMMFile = document.querySelector("#HMMInput").files[0];
+    printToInfoBoxDiv("Accepted HMM file: " + inputHMMFile.name);
+    var reader = new FileReader();
+    reader.onload = readInputHMMFileCallback.bind(this, reader, inputHMMFile);
+    reader.readAsText(inputHMMFile);
+}
+
+document.querySelector("#loadSavePointButton").onclick = function() {
+    initialize();
+    disableInputButtons();
+    window.inputMode = "savePoint";
+    var inputSavePointFile = document.querySelector("#savePointInput").files[0];
+    printToInfoBoxDiv("Accepted save point file: " + inputSavePointFile.name);
+    var reader = new FileReader();
+    reader.onload = readInputSavePointFileCallback.bind(this, reader, inputSavePointFile);
+    reader.readAsText(inputSavePointFile);
+}
+
+document.querySelector("#applyScalingButton").onclick = function() {
+    initialize();
+    normalizeInformationContentProfile();
 }
 
 /*----------------------------------------------------------------------------*/
@@ -336,7 +440,7 @@ function calculateDomainInformationContentProfiles(hmmInformationContentProfile,
                     domainInformationContentProfile.push("i");
                 }
             }
-            domainInformationContentProfiles.push([[domainAlignment[4], domainAlignment[3], domainAlignment[5], domainInformationContentProfile], {"hmmStart": hmmStart, "hmmEnd": hmmEnd}]);
+            domainInformationContentProfiles.push([[domainAlignment[4], domainAlignment[3], domainAlignment[5], domainInformationContentProfile], {"hmmStart": hmmStart, "hmmEnd": hmmEnd}, domainAlignment[0]]);
         }
     }
 //    console.log(domainInformationContentProfiles);
@@ -390,13 +494,17 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoi
             .attr("fill", "MediumSeaGreen")
             .attr("domainIndex", domainIndex)
             .on("click", function () {
-                var moleculeData = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][0];
-//                console.log(moleculeData);
-                savePoint.moleculeData = moleculeData;
                 savePoint.domainIndex = d3.select(this).attr("domainIndex");
                 updateSavePoint(savePoint);
+                var alignedSequence = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][2];
+                var hmmStart = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][1].hmmStart;
+                var hmmEnd = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][1].hmmEnd;
+                d3.select("#selectedSequenceAlignment").remove();
+                printToSequenceAlignmentDiv("-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(hmmLength - hmmEnd), "selectedSequenceAlignment");
                 chart.selectAll("rect").attr("fill", "MediumSeaGreen");
                 d3.select(this).attr("fill", "springgreen");
+                var moleculeData = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][0];
+//                console.log(moleculeData);
                 printToInfoBoxDiv("Selected structure: " + moleculeData[0]);
                 representativeMoleculemmCIFRequest(moleculeData, representativeMoleculemmCIFCallback);
             });
@@ -571,110 +679,14 @@ function readInputSavePointFileCallback(reader, savePointFile) {
     enableInputButtons();
     printToInfoBoxDiv("Plotting HMM structure coverage ...");
     plotDomainCoverage(savePoint.informationContentProfile.length, savePoint.domainInformationContentProfiles, savePoint);
-    if (Object.keys(savePoint).indexOf("moleculeData") !== -1) {
+    if (Object.keys(savePoint).indexOf("domainIndex") !== -1) {
+        var alignedSequence = savePoint.domainInformationContentProfiles[savePoint.domainIndex][2];
+        var hmmStart = savePoint.domainInformationContentProfiles[savePoint.domainIndex][1].hmmStart;
+        var hmmEnd = savePoint.domainInformationContentProfiles[savePoint.domainIndex][1].hmmEnd;
+        printToSequenceAlignmentDiv("-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(savePoint.informationContentProfile.length - hmmEnd), "selectedSequenceAlignment");
         d3.select("#domainCoverageRect" + savePoint.domainIndex).attr("fill", "springgreen");
-        printToInfoBoxDiv("Selected structure: " + savePoint.moleculeData[0]);
-        representativeMoleculemmCIFRequest(savePoint.moleculeData, representativeMoleculemmCIFCallback);
+        var moleculeData = savePoint.domainInformationContentProfiles[savePoint.domainIndex][0];
+        printToInfoBoxDiv("Selected structure: " + moleculeData[0]);
+        representativeMoleculemmCIFRequest(moleculeData, representativeMoleculemmCIFCallback);
     }
-}
-
-/*----------------------------------------------------------------------------*/
-
-function initialize() {
-    document.querySelector("#createSavePointFileButton").disabled = true;
-    document.querySelector("#applyScalingButton").disabled = true;
-    d3.select("#informationContentProfileSVG").selectAll("*").remove();
-    d3.select("#domainCoverageSVG").selectAll("*").remove();
-    d3.select("#sequenceAlignmentDiv").selectAll("*").remove();
-    if (window.plugin) {
-        plugin.destroy();
-    }
-    LiteMolCallback();
-    window.plugin = LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#FFFFFF"});
-}
-
-initialize();
-document.querySelector("#scalingSelection").value = "linearAbsolute";
-
-function disableInputButtons() {
-    document.querySelector("#submitSequenceButton").disabled = true;
-    document.querySelector("#submitHMMButton").disabled = true;
-    document.querySelector("#loadSavePointButton").disabled = true;
-    document.querySelector("#scalingSelection").disabled = true;
-}
-
-function enableInputButtons() {
-    document.querySelector("#submitSequenceButton").disabled = false;
-    document.querySelector("#submitHMMButton").disabled = false;
-    document.querySelector("#loadSavePointButton").disabled = false;
-    document.querySelector("#scalingSelection").disabled = false;
-}
-
-/*----------------------------------------------------------------------------*/
-
-document.querySelector("#submitSequenceButton").onclick = function() {
-    initialize();
-    disableInputButtons();
-    window.inputMode = "sequence";
-    window.inputSequence = document.querySelector("#sequenceInput").value.toUpperCase().replace(/\s+/g, "");
-    printToInfoBoxDiv("Accepted sequence (" + inputSequence.length + " residues): " + inputSequence);
-    printToInfoBoxDiv("Checking input ...");
-    checkInputSequence(inputSequence);
-    phmmerRequest(inputSequence, "uniprotrefprot", phmmerCallback);
-}
-
-function checkInputSequence(seq) {
-    var seqLength = seq.length;
-    var seqUniqueCharacters = new Set(seq);
-    var nucleotides = new Set("ACGT");
-    if (seqLength < 10) {
-        printToInfoBoxDiv("ERROR: input sequence must contain at least 10 characters.");
-        enableInputButtons();
-        throw new Error("Input sequence must contain at least 10 characters.");
-    }
-    if ((seqLength === 10) && (seqUniqueCharacters.size < 6)) {
-        printToInfoBoxDiv("ERROR: at least 6 unique characters must be present in an input sequence containing exactly 10 characters.");
-        enableInputButtons();
-        throw new Error("At least 6 unique characters must be present in an input sequence containing exactly 10 characters.");
-    }
-    if ((seqLength > 10) && (seqUniqueCharacters.size === (seqUniqueCharacters.intersection(nucleotides)).size)) {
-        printToInfoBoxDiv("ERROR: at least 1 character which is not A/C/G/T must be present in an input sequence containing more than 10 characters.");
-        enableInputButtons();
-        throw new Error("At least 1 character which is not A/C/G/T must be present in an input sequence containing more than 10 characters.");
-    }
-}
-
-document.querySelector("#exampleSequenceInputButton").onclick = function() {
-    document.querySelector("#sequenceInput").value = "MERKRGRQTYTRYQTLELEKEFHFNRYLTRRRRIEIAHALSLTERQIKIWFQNRRMKWKKEN";
-}
-
-document.querySelector("#clearSequenceInputButton").onclick = function() {
-    document.querySelector("#sequenceInput").value = "";
-}
-
-document.querySelector("#submitHMMButton").onclick = function() {
-    initialize();
-    disableInputButtons();
-    window.inputMode = "HMM";
-    var inputHMMFile = document.querySelector("#HMMInput").files[0];
-    printToInfoBoxDiv("Accepted HMM file: " + inputHMMFile.name);
-    var reader = new FileReader();
-    reader.onload = readInputHMMFileCallback.bind(this, reader, inputHMMFile);
-    reader.readAsText(inputHMMFile);
-}
-
-document.querySelector("#loadSavePointButton").onclick = function() {
-    initialize();
-    disableInputButtons();
-    window.inputMode = "savePoint";
-    var inputSavePointFile = document.querySelector("#savePointInput").files[0];
-    printToInfoBoxDiv("Accepted save point file: " + inputSavePointFile.name);
-    var reader = new FileReader();
-    reader.onload = readInputSavePointFileCallback.bind(this, reader, inputSavePointFile);
-    reader.readAsText(inputSavePointFile);
-}
-
-document.querySelector("#applyScalingButton").onclick = function() {
-    initialize();
-    normalizeInformationContentProfile();
 }
