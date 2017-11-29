@@ -5,6 +5,7 @@
  *   2) A NEW COLORING OPTION ``Information Content'' HAS BEEN ADDED,
  *   3) THE COLORING OPTION ``Information Content'' HAS BEEN MADE DEFAULT
         FOR CARTOON VISUALIZATION STYLE.
+     4) ``Default.HighlightColor'' HAS BEEN CHANGED.
  */
 
 function LiteMolCallback(structureInformationContentColors) {
@@ -65920,7 +65921,7 @@ function LiteMolCallback(structureInformationContentColors) {
 		(function (Theme) {
 		    var Default;
 		    (function (Default) {
-			Default.HighlightColor = { r: 1.0, g: 1.0, b: 0 };
+			Default.HighlightColor = { r: 0.118, g: 0.529, b: 0.937 }; //{ r: 1.0, g: 1.0, b: 0 };
 			Default.SelectionColor = { r: 171 / 255, g: 71 / 255, b: 183 / 255 }; //{ r: 1.0, g: 0.0, b: 0.0 };
 			Default.UniformColor = { r: 68 / 255, g: 130 / 255, b: 255 };
 			Default.Transparency = { alpha: 1.0, writeDepth: false };

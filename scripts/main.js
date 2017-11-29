@@ -63,6 +63,9 @@ function printToSequenceAlignmentDiv(text, id = "", color = "black") {
 
 function initialize() {
     document.querySelector("#createSavePointFileButton").disabled = true;
+    d3.select("#structureSelection").selectAll("*").remove();
+    document.querySelector("#structureSelection").disabled = true;
+    document.querySelector("#selectStructureButton").disabled = true;
     document.querySelector("#applyScalingButton").disabled = true;
     d3.select("#informationContentProfileSVG").selectAll("*").remove();
     d3.select("#domainCoverageSVG").selectAll("*").remove();
@@ -153,6 +156,16 @@ document.querySelector("#loadSavePointButton").onclick = function() {
     var reader = new FileReader();
     reader.onload = readInputSavePointFileCallback.bind(this, reader, inputSavePointFile);
     reader.readAsText(inputSavePointFile);
+}
+
+document.querySelector("#selectStructureButton").onclick = function() {
+    restoreSavePoint();
+    d3.select("#selectedSequenceAlignment").remove();
+    d3.select("#domainCoverageSVG").selectAll("g").selectAll("rect").attr("fill", "MediumSeaGreen");
+    var domain = JSON.parse(document.querySelector("#structureSelection").value);
+    var moleculeData = domain[0];
+    printToInfoBoxDiv("Selected structure: " + moleculeData[0]);
+    representativeMoleculemmCIFRequest(moleculeData, representativeMoleculemmCIFCallback);
 }
 
 document.querySelector("#applyScalingButton").onclick = function() {
@@ -419,9 +432,22 @@ function calculateDomainInformationContentProfiles(hmmInformationContentProfile,
     var coveredHmmInformationContentProfilePositions = new Set();
     var minimumNewHmmPositions = 40;
     var domainInformationContentProfiles = [];
+    var otherDomains = [];
     for (var domainAlignment of domainAlignments) {
         var hmmStart = domainAlignment[1];
         var hmmEnd = domainAlignment[2];
+        var matchStateCount = 0;
+        var domainInformationContentProfile = [];
+        for (var letter of domainAlignment[0]) {
+            if (letter === "-") {
+                matchStateCount += 1;
+            } else if ((letter === letter.toUpperCase()) && (letter !== "-")) {
+                domainInformationContentProfile.push(hmmInformationContentProfile[hmmStart - 1 + matchStateCount]);
+                matchStateCount += 1;
+            } else {
+                domainInformationContentProfile.push("i");
+            }
+        }
         var hmmPositions = new Set();
         for (var i = hmmStart; i <= hmmEnd; i += 1) {
             hmmPositions.add(i);
@@ -429,24 +455,19 @@ function calculateDomainInformationContentProfiles(hmmInformationContentProfile,
         var newHmmPositions = hmmPositions.difference(coveredHmmInformationContentProfilePositions);
         if ((coveredHmmInformationContentProfilePositions.size === 0) || (newHmmPositions.size >= minimumNewHmmPositions)) {
             coveredHmmInformationContentProfilePositions = coveredHmmInformationContentProfilePositions.union(newHmmPositions);
-            var matchStateCount = 0;
-            var domainInformationContentProfile = [];
-            for (var letter of domainAlignment[0]) {
-                if (letter === "-") {
-                    matchStateCount += 1;
-                } else if ((letter === letter.toUpperCase()) && (letter !== "-")) {
-                    domainInformationContentProfile.push(hmmInformationContentProfile[hmmStart - 1 + matchStateCount]);
-                    matchStateCount += 1;
-                } else {
-                    domainInformationContentProfile.push("i");
-                }
-            }
             domainInformationContentProfiles.push([[domainAlignment[4], domainAlignment[3], domainAlignment[5], domainInformationContentProfile], {"hmmStart": hmmStart, "hmmEnd": hmmEnd}, domainAlignment[0]]);
+        } else {
+            otherDomains.push([[domainAlignment[4], domainAlignment[3], domainAlignment[5], domainInformationContentProfile], {"hmmStart": hmmStart, "hmmEnd": hmmEnd}, domainAlignment[0]]);
         }
     }
 //    console.log(domainInformationContentProfiles);
+//    console.log(otherDomains);
     savePoint.domainInformationContentProfiles = domainInformationContentProfiles;
     updateSavePoint(savePoint);
+    window.restoreSavePoint = updateSavePoint.bind(this, JSON.parse(JSON.stringify(savePoint)));
+    createStructureSelectionOptions(otherDomains);
+    document.querySelector("#structureSelection").disabled = false;
+    document.querySelector("#selectStructureButton").disabled = false;
     document.querySelector("#createSavePointFileButton").disabled = false;
     document.querySelector("#applyScalingButton").disabled = false;
     enableInputButtons();
@@ -458,6 +479,16 @@ function updateSavePoint(savePoint) {
     var savePointBlob = new Blob([JSON.stringify(savePoint)], {type: "application/json"});
     var savePointAnchor = document.querySelector("#createSavePointFileAnchor");
     savePointAnchor.href = URL.createObjectURL(savePointBlob);
+}
+
+function createStructureSelectionOptions(domains) {
+    var select = document.getElementById("structureSelection");
+    for (var domain of domains) {
+        var option = document.createElement("option");
+        option.text = domain[0][0] + " " + domain[0][1].toString() + "-" + domain[0][2].toString() + " (HMM " + domain[1].hmmStart.toString() + "-" + domain[1].hmmEnd.toString() + ")";
+        option.value = JSON.stringify(domain);
+        select.appendChild(option);
+    }
 }
 
 function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoint) {

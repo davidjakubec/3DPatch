@@ -16,6 +16,11 @@ html {
     margin-top: 10px;
 }
 
+#structureSelectionDiv {
+    background-color: #BCE990;
+    margin-top: 10px;
+}
+
 #scalingSelectionDiv {
     background-color: #E2C14F;
     margin-top: 10px;
