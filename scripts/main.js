@@ -733,6 +733,7 @@ function readInputSavePointFileCallback(reader, savePointFile) {
     }
     if (Object.keys(savePoint).indexOf("selectedStructure") !== -1) {
         var domain = savePoint.selectedStructure;
+        createStructureSelectionOptions([domain,]);
         var moleculeData = domain[0];
         printToInfoBoxDiv("Selected structure: " + moleculeData[0] + ", printing sequence alignment ...");
         var alignedSequence = domain[2];
