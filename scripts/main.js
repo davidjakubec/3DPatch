@@ -159,12 +159,18 @@ document.querySelector("#loadSavePointButton").onclick = function() {
 }
 
 document.querySelector("#selectStructureButton").onclick = function() {
-    restoreSavePoint();
-    d3.select("#selectedSequenceAlignment").remove();
     d3.select("#domainCoverageSVG").selectAll("g").selectAll("rect").attr("fill", "MediumSeaGreen");
     var domain = JSON.parse(document.querySelector("#structureSelection").value);
+    var savePoint = returnOriginalSavePoint();
+    savePoint.selectedStructure = domain;
+    updateSavePoint(savePoint);
     var moleculeData = domain[0];
-    printToInfoBoxDiv("Selected structure: " + moleculeData[0]);
+    printToInfoBoxDiv("Selected structure: " + moleculeData[0] + ", printing sequence alignment ...");
+    var alignedSequence = domain[2];
+    var hmmStart = domain[1].hmmStart;
+    var hmmEnd = domain[1].hmmEnd;
+    d3.select("#selectedSequenceAlignment").remove();
+    printToSequenceAlignmentDiv(moleculeData[0] +"\t" + "-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(savePoint.informationContentProfile.length - hmmEnd), "selectedSequenceAlignment");
     representativeMoleculemmCIFRequest(moleculeData, representativeMoleculemmCIFCallback);
 }
 
@@ -363,11 +369,11 @@ function normalizeInformationContentProfileCallback(logo, informationContentProf
     var savePointObject = new Object();
     savePointObject.HMMConsensusSequence = HMMConsensusSequence;
     printToInfoBoxDiv("Printing HMM consensus sequence ...");
-    printToSequenceAlignmentDiv(HMMConsensusSequence);
+    printToSequenceAlignmentDiv("CONS\t" + HMMConsensusSequence);
     if (inputMode === "sequence") {
         savePointObject.alignedInputSequence = alignedInputSequence;
         printToInfoBoxDiv("Printing input sequence alignment ...");
-        printToSequenceAlignmentDiv(alignedInputSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join(""));
+        printToSequenceAlignmentDiv("INPUT\t" + alignedInputSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join(""));
     }
     savePointObject.informationContentProfile = informationContentProfile;
     var maxObservedInformationContent = informationContentProfile.reduce(function (a, b) {return Math.max(a, b);});
@@ -464,7 +470,7 @@ function calculateDomainInformationContentProfiles(hmmInformationContentProfile,
 //    console.log(otherDomains);
     savePoint.domainInformationContentProfiles = domainInformationContentProfiles;
     updateSavePoint(savePoint);
-    window.restoreSavePoint = updateSavePoint.bind(this, JSON.parse(JSON.stringify(savePoint)));
+    window.returnOriginalSavePoint = (function (savePoint) {return savePoint;}).bind(this, JSON.parse(JSON.stringify(savePoint)));
     createStructureSelectionOptions(otherDomains);
     document.querySelector("#structureSelection").disabled = false;
     document.querySelector("#selectStructureButton").disabled = false;
@@ -528,16 +534,16 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoi
             .on("click", function () {
                 savePoint.domainIndex = d3.select(this).attr("domainIndex");
                 updateSavePoint(savePoint);
-                var alignedSequence = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][2];
-                var hmmStart = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][1].hmmStart;
-                var hmmEnd = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][1].hmmEnd;
-                d3.select("#selectedSequenceAlignment").remove();
-                printToSequenceAlignmentDiv("-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(hmmLength - hmmEnd), "selectedSequenceAlignment");
                 chart.selectAll("rect").attr("fill", "MediumSeaGreen");
                 d3.select(this).attr("fill", "springgreen");
                 var moleculeData = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][0];
 //                console.log(moleculeData);
                 printToInfoBoxDiv("Selected structure: " + moleculeData[0] + ", printing sequence alignment ...");
+                var alignedSequence = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][2];
+                var hmmStart = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][1].hmmStart;
+                var hmmEnd = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][1].hmmEnd;
+                d3.select("#selectedSequenceAlignment").remove();
+                printToSequenceAlignmentDiv(moleculeData[0] +"\t" + "-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(hmmLength - hmmEnd), "selectedSequenceAlignment");
                 representativeMoleculemmCIFRequest(moleculeData, representativeMoleculemmCIFCallback);
             });
         var label = chart.append("text")
@@ -705,10 +711,10 @@ function readInputSavePointFileCallback(reader, savePointFile) {
 //    console.log(savePoint);
     document.querySelector("#scalingSelection").value = savePoint.normalizationMethod;
     printToInfoBoxDiv("Printing HMM consensus sequence ...");
-    printToSequenceAlignmentDiv(savePoint.HMMConsensusSequence);
+    printToSequenceAlignmentDiv("CONS\t" + savePoint.HMMConsensusSequence);
     if (savePoint.alignedInputSequence) {
         printToInfoBoxDiv("Printing input sequence alignment ...");
-        printToSequenceAlignmentDiv(savePoint.alignedInputSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join(""));
+        printToSequenceAlignmentDiv("INPUT\t" + savePoint.alignedInputSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join(""));
     }
     printToInfoBoxDiv("Plotting HMM information content profile ...");
     plotInformationContentProfile(savePoint.informationContentProfile, savePoint.maxTheoreticalInformationContent);
@@ -716,13 +722,23 @@ function readInputSavePointFileCallback(reader, savePointFile) {
     printToInfoBoxDiv("Plotting HMM structure coverage ...");
     plotDomainCoverage(savePoint.informationContentProfile.length, savePoint.domainInformationContentProfiles, savePoint);
     if (Object.keys(savePoint).indexOf("domainIndex") !== -1) {
-        var alignedSequence = savePoint.domainInformationContentProfiles[savePoint.domainIndex][2];
-        var hmmStart = savePoint.domainInformationContentProfiles[savePoint.domainIndex][1].hmmStart;
-        var hmmEnd = savePoint.domainInformationContentProfiles[savePoint.domainIndex][1].hmmEnd;
-        printToSequenceAlignmentDiv("-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(savePoint.informationContentProfile.length - hmmEnd), "selectedSequenceAlignment");
         d3.select("#domainCoverageRect" + savePoint.domainIndex).attr("fill", "springgreen");
         var moleculeData = savePoint.domainInformationContentProfiles[savePoint.domainIndex][0];
         printToInfoBoxDiv("Selected structure: " + moleculeData[0] + ", printing sequence alignment ...");
+        var alignedSequence = savePoint.domainInformationContentProfiles[savePoint.domainIndex][2];
+        var hmmStart = savePoint.domainInformationContentProfiles[savePoint.domainIndex][1].hmmStart;
+        var hmmEnd = savePoint.domainInformationContentProfiles[savePoint.domainIndex][1].hmmEnd;
+        printToSequenceAlignmentDiv(moleculeData[0] + "\t" + "-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(savePoint.informationContentProfile.length - hmmEnd), "selectedSequenceAlignment");
+        representativeMoleculemmCIFRequest(moleculeData, representativeMoleculemmCIFCallback);
+    }
+    if (Object.keys(savePoint).indexOf("selectedStructure") !== -1) {
+        var domain = savePoint.selectedStructure;
+        var moleculeData = domain[0];
+        printToInfoBoxDiv("Selected structure: " + moleculeData[0] + ", printing sequence alignment ...");
+        var alignedSequence = domain[2];
+        var hmmStart = domain[1].hmmStart;
+        var hmmEnd = domain[1].hmmEnd;
+        printToSequenceAlignmentDiv(moleculeData[0] +"\t" + "-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(savePoint.informationContentProfile.length - hmmEnd), "selectedSequenceAlignment");
         representativeMoleculemmCIFRequest(moleculeData, representativeMoleculemmCIFCallback);
     }
     printToInfoBoxDiv("DONE !");
