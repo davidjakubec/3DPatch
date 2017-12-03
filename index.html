@@ -2,6 +2,8 @@
 <html>
     <head>
         <meta charset="utf-8">
+        <title>3DPatch</title>
+        <link href="https://fonts.googleapis.com/css?family=Roboto+Mono" rel="stylesheet">
         <link href="styles/style.css" rel="stylesheet" type="text/css">
         <script src="styles/conservationColorScale/conservationColorScale.js"></script>
         <script src="scripts/d3.min.js"></script>
@@ -9,51 +11,79 @@
         <script src="LiteMol/js/LiteMol-plugin.js"></script>
     </head>
     <body>
-        <div id="sequenceInputDiv">
-            <label>Enter a protein sequence ...
-                <input id="sequenceInput" type="text">
-                <button id="submitSequenceButton" autocomplete="off">Submit sequence</button>
-                <button id="exampleSequenceInputButton">Example</button>
-                <button id="clearSequenceInputButton">Clear</button>
-            </label>
-        </div>
-        <div id=HMMInputDiv>
-            <label>... upload an HMM file ...
-                <input id="HMMInput" type="file">
-                <button id="submitHMMButton" autocomplete="off">Submit HMM</button>
-            </label>
-        </div>
-        <div id="savePointInputDiv">
-            <label>... or load state from save point file
-                <input id="savePointInput" type="file">
-                <button id="loadSavePointButton" autocomplete="off">Load save point</button>
-            </label>
-            <label>
-                <a id="createSavePointFileAnchor" download="savePoint.json" href=""><button id="createSavePointFileButton" autocomplete="off" disabled=true>Create save point file</button></a>
-            </label>
-        </div>
-        <div id="structureSelectionDiv">
-            <label>Missing your favorite structure ? Check out this list:
-                <select id="structureSelection"></select>
-            </label>
-            <button id="selectStructureButton" autocomplete="off">Select structure</button>
-        </div>
-        <div id="scalingSelectionDiv">
-            <label>Select information content color scaling:
-                <select id="scalingSelection">
-                    <option value="linearAbsolute" selected>Linear (absolute)</option>
-                    <option value="linearRelative">Linear (relative)</option>
-                    <option value="exponentialAbsolute">Exponential (absolute)</option>
-                    <option value="exponentialRelative">Exponential (relative)</option>
-                </select>
-            </label>
-            <button id="applyScalingButton" autocomplete="off" disabled=true>Apply scaling</button>
-        </div>
-        <div id="infoBoxDiv"></div>
-        <svg id="informationContentProfileSVG" width="640" height="180"></svg>
-        <svg id="domainCoverageSVG" width="640"></svg>
-        <div id="sequenceAlignmentDiv"></div>
-        <div id="litemol"></div>
-        <script src="scripts/main.js"></script>
+        <header>
+            <h1>3DPatch</h1>
+        </header>
+        <main>
+            <div id="leftColumnDiv">
+                <section class="sectionBox">
+                    <h3>Start new search</h3>
+                    <p>Enter a protein sequence</p>
+                    <p>
+                        <input id="sequenceInput" type="text">
+                        <button id="submitSequenceButton" autocomplete="off">Submit sequence</button>
+                        <button id="clearSequenceInputButton">Clear</button>
+                        <button id="exampleSequenceInputButton">Example</button>
+                    </p>
+                    <p>Or upload an HMM file</p>
+                    <p>
+                        <input id="HMMInput" type="file">
+                        <button id="submitHMMButton" autocomplete="off">Submit HMM</button>
+                    </p>
+                    <hr>
+                    <h3>Load state</h3>
+                    <p>Upload a save point file</p>
+                    <p>
+                        <input id="savePointInput" type="file">
+                        <button id="loadSavePointButton" autocomplete="off">Load</button>
+                        <a id="createSavePointFileAnchor" download="savePoint.json" href=""><button id="createSavePointFileButton" autocomplete="off" disabled=true>Create save point file</button></a>
+                    </p>
+                </section>
+                <section id="informationContentProfileSection" class="sectionBox">
+                    <h3>HMM information content profile</h3>
+                    <svg id="informationContentProfileSVG" width="620" height="180"></svg>
+                </section>
+                <section id="domainCoverageSection" class="sectionBox">
+                    <h3>HMM structure coverage</h3>
+                    <p>Click on a box to view the structure</p>
+                    <svg id="domainCoverageSVG" width="620"></svg>
+                    <hr>
+                    <p>Missing your favorite structure ? Try searching for it below</p>
+                    <p>
+                        <select id="structureSelection"></select>
+                        <button id="selectStructureButton" autocomplete="off">Select structure</button>
+                    </p>
+                </section>
+            </div>
+            <div id="rightColumnDiv">
+                <section class="sectionBox">
+                    <h3>Log</h3>
+                    <div id="infoBoxDiv"></div>
+                </section>
+                <section id="sequenceAlignmentSection" class="sectionBox">
+                    <h3>Sequence alignment</h3>
+                    <div id="sequenceAlignmentDiv"></div>
+                </section>
+                <section id="litemolSection" class="sectionBox">
+                    <h3>Viewer</h3>
+                    <div id="litemol"></div>
+                    <hr>
+                    <p>Change the information content color scaling method</p>
+                    <p>
+                        <select id="scalingSelection">
+                            <option value="linearAbsolute" selected>Linear (absolute)</option>
+                            <option value="linearRelative">Linear (relative)</option>
+                            <option value="exponentialAbsolute">Exponential (absolute)</option>
+                            <option value="exponentialRelative">Exponential (relative)</option>
+                        </select>
+                        <button id="applyScalingButton" autocomplete="off" disabled=true>Apply scaling</button>
+                    </p>
+                </section>
+            </div>
+        </main>
+        <footer>
+            Footer text.
+        </footer>
     </body>
+    <script src="scripts/main.js"></script>
 </html>

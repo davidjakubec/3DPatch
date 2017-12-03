@@ -74,7 +74,8 @@ function initialize() {
         plugin.destroy();
     }
     LiteMolCallback();
-    window.plugin = LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#FFFFFF"});
+    window.plugin = LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#FFFFFF", layoutState: {hideControls: true}});
+//    window.plugin = LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#FFFFFF"});
 }
 
 initialize();
@@ -550,7 +551,7 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoi
             .text(domain[0][0])
             .style("pointer-events", "none")
             .attr("fill", "white")
-            .attr("font-family", "monospace")
+            .attr("font-family", "Roboto Mono, monospace")
             .attr("font-size", 16)
             .attr("text-anchor", "middle")
             .attr("x", Number(d3.select("#domainCoverageRect" + domainIndex).attr("x")) + (Number(d3.select("#domainCoverageRect" + domainIndex).attr("width")) / 2))
@@ -647,7 +648,8 @@ function visualizeMolecule(moleculeData, structureInformationContentProfile) {
     var pdbId = moleculeData[0].split("_")[0];
     plugin.destroy();
     LiteMolCallback(structureInformationContentColors);
-    window.plugin = LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#FFFFFF"});
+    window.plugin = LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#FFFFFF", layoutState: {hideControls: true}});
+//    window.plugin = LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#FFFFFF"});
     plugin.loadMolecule({id: pdbId, url: "https://www.ebi.ac.uk/pdbe/static/entry/" + pdbId + "_updated.cif", format: "cif"});
 }
 

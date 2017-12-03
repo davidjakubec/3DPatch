@@ -1,58 +1,75 @@
 html {
-    background: #007C82;
+/*    background-image: linear-gradient(to bottom, white, white 20%, #E2F7CD);*/
+    background: #E2F7CD;
 }
 
-#sequenceInputDiv {
-    background-color: #D26D6D;
+body {
+    width: 1300px;
+    margin: 0 auto;
+    font-family: "Source Sans Pro", sans-serif;
 }
 
-#HMMInputDiv {
-    background-color: #56BDE8;
-    margin-top: 10px;
+header {
+    margin: 0 5px;
 }
 
-#savePointInputDiv {
-    background-color: #D3BAED;
-    margin-top: 10px;
-}
-
-#structureSelectionDiv {
-    background-color: #BCE990;
-    margin-top: 10px;
-}
-
-#scalingSelectionDiv {
-    background-color: #E2C14F;
-    margin-top: 10px;
-}
-
-#infoBoxDiv {
-    background-color: #8CEC8C;
+#leftColumnDiv {
     width: 640px;
-    height: 240px;
+    margin: 0 5px;
+    float: left;
+}
+
+#rightColumnDiv {
+    width: 640px;
+    margin: 0 5px;
+    float: right;
+}
+
+.sectionBox {
+    background: white;
+    padding: 8px;
+    border: 2px solid black;
+}
+
+#informationContentProfileSection {
     margin-top: 10px;
-    font-family: monospace;
-    font-size: 16px;
-    overflow: auto;
 }
 
 #informationContentProfileSVG {
     cursor: default;
+}
+
+#domainCoverageSection {
     margin-top: 10px;
 }
 
 #domainCoverageSVG {
     cursor: default;
+}
+
+#infoBoxDiv {
+    background-color: #E7EAFD;
+    width: 610px;
+    height: 180px;
+    padding: 3px;
+    border: 2px solid black;
+    font-family: "Roboto Mono", monospace;
+    font-size: 16px;
+    line-height: 8px;
+    overflow: auto;
+    white-space: pre;
+}
+
+#sequenceAlignmentSection {
     margin-top: 10px;
 }
 
 #sequenceAlignmentDiv {
     cursor: default;
     background-color: #FFFFFF;
-    width: 640px;
+    width: 620px;
     height: 100px;
-    margin-top: 10px;
-    font-family: monospace;
+    font-family: "Roboto Mono", monospace;
     font-size: 16px;
     line-height: 8px;
     overflow: auto;
@@ -60,9 +77,17 @@ html {
     white-space: pre;
 }
 
+#litemolSection {
+    margin-top: 10px;
+}
+
 #litemol {
-    width: 640px;
+    width: 620px;
     height: 480px;
-    margin-top: 75px;
     position: relative;
+}
+
+footer {
+    margin: 0 5px;
+    clear: both;
 }
