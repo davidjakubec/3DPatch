@@ -408,7 +408,7 @@ function plotInformationContentProfile(profile, yMax) {
         .attr("width", svg.attr("width"))
         .attr("height", svg.attr("height"))
         .attr("fill", "white");
-    var chartMargin = {top: 20, right: 20, bottom: 30, left: 40};
+    var chartMargin = {top: 20, right: 20, bottom: 45, left: 55};
     var chartWidth = svg.attr("width") - chartMargin.left - chartMargin.right;
     var chartHeight = svg.attr("height") - chartMargin.top - chartMargin.bottom;
     var chart = svg.append("g")
@@ -427,6 +427,16 @@ function plotInformationContentProfile(profile, yMax) {
         .call(d3.axisBottom(x));
     chart.append("g")
         .call(d3.axisLeft(y));
+    chart.append("text")
+        .text("HMM position")
+        .attr("transform", "translate(" + (chartWidth / 2) + ", " + (chartHeight + 35) +")")
+        .attr("font-size", 14)
+        .attr("text-anchor", "middle");
+    svg.append("text")
+        .text("Information content (bits)")
+        .attr("transform", "translate(20, " + (chartMargin.top + (chartHeight / 2)) + ")rotate(-90)")
+        .attr("font-size", 14)
+        .attr("text-anchor", "middle");
     chart.append("path")
         .datum(profile)
         .attr("fill", "none")
@@ -501,7 +511,7 @@ function createStructureSelectionOptions(domains) {
 function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoint) {
     var domainCount = domainInformationContentProfiles.length;
     var svg = d3.select("#domainCoverageSVG");
-    var chartMargin = {top: 20, right: 20, bottom: 30, left: 20};
+    var chartMargin = {top: 20, right: 20, bottom: 45, left: 20};
     var rectElementHeight = 50;
     svg.attr("height", (domainCount * rectElementHeight) + chartMargin.top + chartMargin.bottom);
     svg.append("rect")
@@ -518,6 +528,11 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoi
     chart.append("g")
         .attr("transform", "translate(0, " + chartHeight + ")")
         .call(d3.axisBottom(x));
+    chart.append("text")
+        .text("HMM position")
+        .attr("transform", "translate(" + (chartWidth / 2) + ", " + (chartHeight + 35) +")")
+        .attr("font-size", 14)
+        .attr("text-anchor", "middle");
     var rectElementMargin = {top: 10, bottom: 10};
     var rectElementCornerRadius = {x: 5, y: 5};
     var domainIndex = 0;
