@@ -370,7 +370,6 @@ function normalizeInformationContentProfileCallback(logo, informationContentProf
     var savePointObject = new Object();
     savePointObject.HMMConsensusSequence = HMMConsensusSequence;
     printToInfoBoxDiv("Printing HMM consensus sequence ...");
-    printSequencePositionIndices(HMMConsensusSequence.length);
     printToSequenceAlignmentDiv("CONS\t" + HMMConsensusSequence);
     if (inputMode === "sequence") {
         savePointObject.alignedInputSequence = alignedInputSequence;
@@ -401,18 +400,6 @@ function normalizeInformationContentProfileCallback(logo, informationContentProf
     } else if (inputMode === "HMM") {
         calculateDomainInformationContentProfiles(normalizedInformationContentProfile, HMMInputHmmsearchDomainAlignments, savePointObject);
     }
-}
-
-function printSequencePositionIndices(sequenceLength) {
-    var positionIndices = [];
-    for (var i = 10; i <= sequenceLength; i += 10) {
-        positionIndices.unshift(i.toString());
-    }
-    var positionIndexString = " ".repeat(sequenceLength).split("");
-    for (var i of positionIndices) {
-        positionIndexString.splice(Number(i) - 1, i.length, i);
-    }
-    printToSequenceAlignmentDiv("\t" + positionIndexString.join(""));
 }
 
 function plotInformationContentProfile(profile, yMax) {
@@ -755,7 +742,6 @@ function readInputSavePointFileCallback(reader, savePointFile) {
     checkSavePoint(savePoint);
     document.querySelector("#scalingSelection").value = savePoint.normalizationMethod;
     printToInfoBoxDiv("Printing HMM consensus sequence ...");
-    printSequencePositionIndices(savePoint.HMMConsensusSequence.length);
     printToSequenceAlignmentDiv("CONS\t" + savePoint.HMMConsensusSequence);
     if (savePoint.alignedInputSequence) {
         printToInfoBoxDiv("Printing input sequence alignment ...");
