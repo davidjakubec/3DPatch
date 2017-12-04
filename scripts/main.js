@@ -697,9 +697,11 @@ function HMMInputHmmsearchCallback(request, HMMFile) {
         printToInfoBoxDiv("hmmsearch search against PDB finished, results: ", responseURL);
         var hits = JSON.parse(request.response)["results"]["hits"];	// all hits, incl. high E-value
 //        console.log(hits);
+        printToInfoBoxDiv("Checking hits ...");
         if (hits.length === 0) {
+            printToInfoBoxDiv("ERROR: no structures were found using hmmsearch search.");
             enableInputButtons();
-            throw new Error("No structures were found using hmmsearch.");
+            throw new Error("No structures were found using hmmsearch search.");
         }
         window.HMMInputHmmsearchDomainAlignments = [];
         for (var hit of hits) {
@@ -718,14 +720,26 @@ function HMMInputHmmsearchCallback(request, HMMFile) {
         }
 //        console.log(HMMInputHmmsearchDomainAlignments);
         skylignURLRequest(HMMFile, skylignURLCallback);
+    } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 400)) {
+        printToInfoBoxDiv("ERROR: something went wrong with your search. Did you upload a valid HMM file ?");
+        enableInputButtons();
+        throw new Error("Something went wrong with your search. Did you upload a valid HMM file ?");
     }
 }
 
 /*----------------------------------------------------------------------------*/
 
 function readInputSavePointFileCallback(reader, savePointFile) {
-    var savePoint = JSON.parse(reader.result);
+    try {
+        var savePoint = JSON.parse(reader.result);
+    } catch (e) {
+        printToInfoBoxDiv("ERROR: input doesn't look like a JSON file.");
+        enableInputButtons();
+        throw new Error("Input doesn't look like a JSON file.");
+    }
 //    console.log(savePoint);
+    printToInfoBoxDiv("Checking input ...");
+    checkSavePoint(savePoint);
     document.querySelector("#scalingSelection").value = savePoint.normalizationMethod;
     printToInfoBoxDiv("Printing HMM consensus sequence ...");
     printToSequenceAlignmentDiv("CONS\t" + savePoint.HMMConsensusSequence);
@@ -760,4 +774,12 @@ function readInputSavePointFileCallback(reader, savePointFile) {
         representativeMoleculemmCIFRequest(moleculeData, representativeMoleculemmCIFCallback);
     }
     printToInfoBoxDiv("DONE !");
+}
+
+function checkSavePoint(savePoint) {
+    if (Object.keys(savePoint).indexOf("informationContentProfile") === -1) {
+        printToInfoBoxDiv("ERROR: input doesn't look like a save point file.");
+        enableInputButtons();
+        throw new Error("Input doesn't look like a save point file.");
+    }
 }
