@@ -150,7 +150,6 @@ document.querySelector("#submitHMMButton").onclick = function() {
 
 document.querySelector("#loadSavePointButton").onclick = function() {
     initialize();
-    document.querySelector("#referenceStructuresListAnchor").href = "";
     disableInputButtons();
     window.inputMode = "savePoint";
     var inputSavePointFile = document.querySelector("#savePointInput").files[0];
@@ -258,7 +257,6 @@ function hmmsearchCallback(request, jobID) {
             enableInputButtons();
             throw new Error("No structures were found using hmmsearch search.");
         }
-        generateReferenceStructuresList(hits);
         window.hmmsearchDomainAlignments = [];
         for (var hit of hits) {
             var domains = hit["domains"];
@@ -279,17 +277,6 @@ function hmmsearchCallback(request, jobID) {
     } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 400)) {
         delayedHmmsearchRequest(jobID);
     }
-}
-
-function generateReferenceStructuresList(hits) {
-    var referenceStructuresList = [];
-    for (var hit of hits) {
-        var line = hit["acc"] + "\t" + hit["pdbs"].filter(function (id) {return (id !== hit["acc"]);}).sort().join(" ");
-        referenceStructuresList.push(line);
-    }
-    var referenceStructuresListBlob = new Blob([referenceStructuresList.join("\n")], {type: "text/plain"});
-    var referenceStructuresAnchor = document.querySelector("#referenceStructuresListAnchor");
-    referenceStructuresAnchor.href = URL.createObjectURL(referenceStructuresListBlob);
 }
 
 function delayedHmmsearchRequest(jobID) {
@@ -729,7 +716,6 @@ function HMMInputHmmsearchCallback(request, HMMFile) {
             enableInputButtons();
             throw new Error("No structures were found using hmmsearch search.");
         }
-        generateReferenceStructuresList(hits);
         window.HMMInputHmmsearchDomainAlignments = [];
         for (var hit of hits) {
             var domains = hit["domains"];
