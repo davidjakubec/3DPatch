@@ -76,6 +76,7 @@ function initialize() {
     LiteMolCallback();
     window.plugin = LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#FFFFFF", layoutState: {hideControls: true}});
 //    window.plugin = LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#FFFFFF"});
+    d3.select("#informationContentColorScaleSVG").selectAll("*").remove();
 }
 
 initialize();
@@ -402,12 +403,20 @@ function normalizeInformationContentProfileCallback(logo, informationContentProf
     savePointObject.normalizationMethod = normalizationMethod;
     if (normalizationMethod === "linearAbsolute") {
         var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (positionInformationContent / maxTheoreticalInformationContent);});
+        plotInformationContentColorScale("linear", maxTheoreticalInformationContent);
+        savePointObject.colorScalePlotParameters = ["linear", maxTheoreticalInformationContent];
     } else if (normalizationMethod === "linearRelative") {
         var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (positionInformationContent / maxObservedInformationContent);});
+        plotInformationContentColorScale("linear", maxObservedInformationContent);
+        savePointObject.colorScalePlotParameters = ["linear", maxObservedInformationContent];
     } else if (normalizationMethod === "exponentialAbsolute") {
         var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (Math.exp(positionInformationContent) / maxExpTheoreticalInformationContent);});
+        plotInformationContentColorScale("exponential", maxExpTheoreticalInformationContent);
+        savePointObject.colorScalePlotParameters = ["exponential", maxExpTheoreticalInformationContent];
     } else if (normalizationMethod === "exponentialRelative") {
         var normalizedInformationContentProfile = informationContentProfile.map(function (positionInformationContent) {return (Math.exp(positionInformationContent) / maxExpObservedInformationContent);});
+        plotInformationContentColorScale("exponential", maxExpObservedInformationContent);
+        savePointObject.colorScalePlotParameters = ["exponential", maxExpObservedInformationContent];
     }
     if (inputMode === "sequence") {
         calculateDomainInformationContentProfiles(normalizedInformationContentProfile, hmmsearchDomainAlignments, savePointObject);
@@ -469,6 +478,66 @@ function plotInformationContentProfile(profile, yMax) {
         .attr("stroke", "steelblue")
         .attr("stroke-width", 1.5)
         .attr("d", line);
+}
+
+function plotInformationContentColorScale(method, xMax) {
+    var svg = d3.select("#informationContentColorScaleSVG");
+    svg.append("rect")
+        .attr("width", svg.attr("width"))
+        .attr("height", svg.attr("height"))
+        .attr("fill", "white");
+    var chartMargin = {top: 20, right: 20, bottom: 45, left: 20};
+    var chartWidth = svg.attr("width") - chartMargin.left - chartMargin.right;
+    var chartHeight = svg.attr("height") - chartMargin.top - chartMargin.bottom;
+    var chart = svg.append("g")
+        .attr("transform", "translate(" + chartMargin.left + ", " + chartMargin.top + ")");
+    var colors = [];
+    for (var color of conservationColorScale.map(function (i) {return JSON.stringify(i);})) {
+        if (colors.indexOf(color) === -1) {
+            colors.push(color);
+        }
+    }
+    var colorCount = colors.length;
+    var relativeTickSize = 1 / colorCount;
+    var relativeTickMarks = [];
+    for (var i = 0; i <= colorCount; i += 1) {
+        relativeTickMarks.push(i * relativeTickSize);
+    }
+    var rectWidth = chartWidth / colorCount;
+    var colorIndex = 0;
+    for (var color of colors.map(function (i) {return JSON.parse(i);})) {
+        var rgbString = color.map(function (i) {return (i * 255);}).join(",");
+        chart.append("rect")
+            .attr("x", colorIndex * rectWidth)
+            .attr("y", 0)
+            .attr("width", rectWidth)
+            .attr("height", chartHeight)
+            .attr("fill", "rgb(" + rgbString + ")");
+        colorIndex += 1;
+    }
+    var x = d3.scaleLinear()
+        .range([0, chartWidth])
+        .domain([0, xMax]);
+    var xValues = relativeTickMarks.map(function (i) {return (i * xMax);});
+    chart.append("g")
+        .attr("transform", "translate(0, " + chartHeight + ")")
+        .call(d3.axisBottom(x)
+//            .ticks(colorCount + 1)
+            .tickValues(xValues)
+            .tickFormat(d3.format(",.2f")));
+    if (method === "linear") {
+        chart.append("text")
+            .text("Information content (bits)")
+            .attr("transform", "translate(" + (chartWidth / 2) + ", " + (chartHeight + 35) +")")
+            .attr("font-size", 14)
+            .attr("text-anchor", "middle");
+    } else if (method === "exponential") {
+        chart.append("text")
+            .text("exp[information content (bits)]")
+            .attr("transform", "translate(" + (chartWidth / 2) + ", " + (chartHeight + 35) +")")
+            .attr("font-size", 14)
+            .attr("text-anchor", "middle");
+    }
 }
 
 function calculateDomainInformationContentProfiles(hmmInformationContentProfile, domainAlignments, savePoint) {
@@ -777,6 +846,7 @@ function readInputSavePointFileCallback(reader, savePointFile) {
     }
     printToInfoBoxDiv("Plotting HMM information content profile ...");
     plotInformationContentProfile(savePoint.informationContentProfile, savePoint.maxTheoreticalInformationContent);
+    plotInformationContentColorScale(savePoint.colorScalePlotParameters[0], savePoint.colorScalePlotParameters[1]);
     enableInputButtons();
     printToInfoBoxDiv("Plotting HMM structure coverage ...");
     plotDomainCoverage(savePoint.informationContentProfile.length, savePoint.domainInformationContentProfiles, savePoint);
