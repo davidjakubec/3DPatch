@@ -139,6 +139,10 @@ document.querySelector("#clearSequenceInputButton").onclick = function() {
 }
 
 document.querySelector("#submitHMMButton").onclick = function() {
+    if (document.querySelector("#HMMInput").files.length === 0) {
+        printToInfoBoxDiv("ERROR: no file was selected.");
+        throw new Error("No file was selected.");
+    }
     initialize();
     disableInputButtons();
     window.inputMode = "HMM";
@@ -150,6 +154,10 @@ document.querySelector("#submitHMMButton").onclick = function() {
 }
 
 document.querySelector("#loadSavePointButton").onclick = function() {
+    if (document.querySelector("#savePointInput").files.length === 0) {
+        printToInfoBoxDiv("ERROR: no file was selected.");
+        throw new Error("No file was selected.");
+    }
     initialize();
     document.querySelector("#referenceStructuresListAnchor").href = "";
     disableInputButtons();

@@ -20,21 +20,21 @@
                     <h3>Start new search</h3>
                     <p>Enter a protein sequence</p>
                     <p>
-                        <input id="sequenceInput" type="text">
+                        <input id="sequenceInput" type="text" required>
                         <button id="submitSequenceButton" autocomplete="off">Submit sequence</button>
                         <button id="clearSequenceInputButton">Clear</button>
                         <button id="exampleSequenceInputButton">Example</button>
                     </p>
                     <p>Or upload an HMM file</p>
                     <p>
-                        <input id="HMMInput" type="file">
+                        <input id="HMMInput" type="file" required>
                         <button id="submitHMMButton" autocomplete="off">Submit HMM</button>
                     </p>
                     <hr>
                     <h3>Load state</h3>
                     <p>Upload a save point file</p>
                     <p>
-                        <input id="savePointInput" type="file">
+                        <input id="savePointInput" type="file" required>
                         <button id="loadSavePointButton" autocomplete="off">Load</button>
                         <a id="createSavePointFileAnchor" download="savePoint.json" href=""><button id="createSavePointFileButton" autocomplete="off" disabled=true>Create save point file</button></a>
                     </p>
