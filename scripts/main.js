@@ -194,7 +194,6 @@ document.querySelector("#applyScalingButton").onclick = function() {
 
 function phmmerRequest(seq, seqdb, callback) {
     var url = "https://www.ebi.ac.uk/Tools/hmmer/search/phmmer";
-//    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer/search/phmmer";
     var data = new FormData();
     data.append("algo", "phmmer");
     data.append("seq", seq);
@@ -219,7 +218,6 @@ function phmmerCallback(request) {
 
 function checkSignificantHitsRequest(jobID, callback) {
     var url = "https://www.ebi.ac.uk/Tools/hmmer/results/" + jobID + "?range=1,1&ali=0&output=json";
-//    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer/results/" + jobID + "?range=1,1&ali=0&output=json";
     var request = new XMLHttpRequest();
     request.open("GET", url, true);
     request.onload = callback.bind(this, request, jobID);
@@ -243,7 +241,6 @@ function checkSignificantHitsCallback(request, jobID) {
 
 function hmmsearchRequest(jobID, callback) {
     var url = "https://www.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
-//    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
     var data = new FormData();
     data.append("algo", "hmmsearch");
     data.append("seqdb", "pdb");
@@ -781,7 +778,6 @@ function readInputHMMFileCallback(reader, HMMFile) {
 
 function HMMInputHmmsearchRequest(HMMFile, callback) {
     var url = "https://www.ebi.ac.uk/Tools/hmmer/search/hmmsearch";
-//    var url = "http://ves-hx-b6.ebi.ac.uk/Tools/hmmer/search/hmmsearch";
     var data = new FormData();
     data.append("algo", "hmmsearch");
     data.append("file", HMMFile);
