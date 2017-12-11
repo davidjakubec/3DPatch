@@ -10,7 +10,19 @@ body {
 }
 
 header {
+    margin-top: 10px;
+}
+
+.headerFooterBox {
+    background: #F8E2CD;
+    width: 1270px;
+    padding: 8px;
+    border: 2px solid black;
     margin: 0 5px;
+}
+
+main {
+    margin-top: 10px;
 }
 
 #leftColumnDiv {
@@ -88,6 +100,6 @@ header {
 }
 
 footer {
-    margin: 0 5px;
+    padding: 10px 0;
     clear: both;
 }

@@ -209,7 +209,7 @@ function phmmerRequest(seq, seqdb, callback) {
 function phmmerCallback(request) {
     if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 200)) {
         var responseURL = request.responseURL;
-        printToInfoBoxDiv("phmmer search against UniProt reference proteomes finished, results: ",     responseURL);
+        printToInfoBoxDiv("phmmer search against UniProt reference proteomes finished, results: ", responseURL);
         var jobID = responseURL.split("/")[6];
         printToInfoBoxDiv("Checking significant hits ...");
         checkSignificantHitsRequest(jobID, checkSignificantHitsCallback);
@@ -284,6 +284,10 @@ function hmmsearchCallback(request, jobID) {
         phmmerResultsHMMRequest(responseURL, phmmerResultsHMMCallback);
     } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 400)) {
         delayedHmmsearchRequest(jobID);
+    } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 500)) {
+        printToInfoBoxDiv("ERROR: something went wrong during hmmsearch search.");
+        enableInputButtons();
+        throw new Error("Something went wrong during hmmsearch search.");
     }
 }
 
@@ -511,13 +515,13 @@ function plotInformationContentColorScale(method, xMax) {
     var rectWidth = chartWidth / colorCount;
     var colorIndex = 0;
     for (var color of colors.map(function (i) {return JSON.parse(i);})) {
-        var rgbString = color.map(function (i) {return (i * 255);}).join(",");
+        var colorHex = "#" + color.map(function (i) {return ("0" + (parseInt(i * 255, 10).toString(16))).slice(-2);}).join("");
         chart.append("rect")
             .attr("x", colorIndex * rectWidth)
             .attr("y", 0)
             .attr("width", rectWidth)
             .attr("height", chartHeight)
-            .attr("fill", "rgb(" + rgbString + ")");
+            .attr("fill", colorHex);
         colorIndex += 1;
     }
     var x = d3.scaleLinear()

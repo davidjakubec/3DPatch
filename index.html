@@ -12,7 +12,9 @@
     </head>
     <body>
         <header>
-            <h1>3DPatch</h1>
+            <div class="headerFooterBox">
+                <h1>3DPatch</h1>
+            </div>
         </header>
         <main>
             <div id="leftColumnDiv">
@@ -20,21 +22,21 @@
                     <h3>Start new search</h3>
                     <p>Enter a protein sequence</p>
                     <p>
-                        <input id="sequenceInput" type="text" required>
+                        <input id="sequenceInput" type="text">
                         <button id="submitSequenceButton" autocomplete="off">Submit sequence</button>
                         <button id="clearSequenceInputButton">Clear</button>
                         <button id="exampleSequenceInputButton">Example</button>
                     </p>
                     <p>Or upload an HMM file</p>
                     <p>
-                        <input id="HMMInput" type="file" required>
+                        <input id="HMMInput" type="file">
                         <button id="submitHMMButton" autocomplete="off">Submit HMM</button>
                     </p>
                     <hr>
                     <h3>Load state</h3>
                     <p>Upload a save point file</p>
                     <p>
-                        <input id="savePointInput" type="file" required>
+                        <input id="savePointInput" type="file">
                         <button id="loadSavePointButton" autocomplete="off">Load</button>
                         <a id="createSavePointFileAnchor" download="savePoint.json" href=""><button id="createSavePointFileButton" autocomplete="off" disabled=true>Create save point file</button></a>
                     </p>
@@ -83,7 +85,9 @@
             </div>
         </main>
         <footer>
-            Footer text.
+            <div class="headerFooterBox">
+                Footer text.
+            </div>
         </footer>
     </body>
     <script src="scripts/main.js"></script>
