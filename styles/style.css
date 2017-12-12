@@ -1,6 +1,6 @@
 html {
-/*    background-image: linear-gradient(to bottom, white, white 20%, #E2F7CD);*/
-    background: #E2F7CD;
+    background-image: linear-gradient(to bottom, white, white 20%, #E2F7CD);
+/*    background: #E2F7CD;*/
 }
 
 body {
@@ -102,4 +102,17 @@ main {
 footer {
     padding: 10px 0;
     clear: both;
+}
+
+#footerLeftDiv {
+    display: inline-block;
+}
+
+#footerRightDiv {
+    display: inline-block;
+    margin-left: 160px;
+}
+
+img {
+    margin: 0 15px;
 }
