@@ -1,5 +1,5 @@
 html {
-    background-image: linear-gradient(to bottom, white, white 20%, #E2F7CD);
+    background-image: linear-gradient(to bottom, white, #E2F7CD);
 /*    background: #E2F7CD;*/
 }
 
@@ -19,6 +19,16 @@ header {
     padding: 8px;
     border: 2px solid black;
     margin: 0 5px;
+}
+
+#headerLeftDiv {
+    display: inline-block;
+    width: 685px;
+}
+
+#headerRightDiv {
+    display: inline-block;
+    margin-left: 100px;
 }
 
 main {

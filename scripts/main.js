@@ -213,6 +213,10 @@ function phmmerCallback(request) {
         var jobID = responseURL.split("/")[6];
         printToInfoBoxDiv("Checking significant hits ...");
         checkSignificantHitsRequest(jobID, checkSignificantHitsCallback);
+    } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 500)) {
+        printToInfoBoxDiv("ERROR: something went wrong during phmmer search.");
+        enableInputButtons();
+        throw new Error("Something went wrong during phmmer search.");
     }
 }
 
@@ -294,7 +298,7 @@ function hmmsearchCallback(request, jobID) {
 function generateReferenceStructuresList(hits) {
     var referenceStructuresList = [];
     for (var hit of hits) {
-        var line = hit["acc"] + "\t" + hit["pdbs"].filter(function (id) {return (id !== hit["acc"]);}).sort().join(" ");
+        var line = hit["acc"] + "\t" + hit["pdbs"].filter(function (id) {return (id !== hit["acc"]);}).sort().join(", ");
         referenceStructuresList.push(line);
     }
     var referenceStructuresListBlob = new Blob([referenceStructuresList.join("\n")], {type: "text/plain"});

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>3DPatch (help)</title>
+        <link href="https://fonts.googleapis.com/css?family=Source+Serif+Pro" rel="stylesheet">
+    </head>
+    <body style="max-width:720px;font-family:'Source Serif Pro',serif;">
+        <header>
+            <h1>3DPatch (help)</h1>
+        </header>
+        <main>
+            <section>
+                <h3>Introduction</h3>
+                <p>3DPatch is a server facilitating residue-level information content calculations, homology searches, and 3D structure conservation level-based mark-up for protein sequence or hidden Markov model (HMM) queries.</p>
+                <p>This section aims to provide a brief overview of how 3DPatch operates. Following sections provide more detail on individual steps in the data processing workflow and various website components.</p>
+                <p>3DPatch can accept either a single protein sequence or a profile hidden Markov model (HMM) file as a new search <a href="#inputHelpSection">input</a>. Alternatively, results of previous 3DPatch sessions can be loaded from a special save point file and viewed. As the HMM file input route simply skips the first few steps of the sequence input-processing pipeline, this section illustrates most of the server functionality on an example utilizing the sequence input route. Loading the results of previous 3DPatch sessions is covered in a <a href="#savePointHelpSection">separate section</a>.</p>
+                <p>After entering a valid protein sequence and clicking the submit button, the sequence is sent to the <a href="https://www.ebi.ac.uk/Tools/hmmer/">HMMER web server</a>. There, a <i>phmmer</i> search against the <a href="http://www.uniprot.org/help/reference_proteome">UniProt reference proteomes</a> sequence library is performed. The sequence input is initially converted to an HMM featuring position-independent <a href="#searchParametersHelpSection">parameters</a>. HMMER web server then performs search using this HMM to find regions of sequences from the UniProt reference proteomes similar to the original sequence input.</p>
+                <p>Multiple sequence alignment (MSA) is obtained from the set of individual alignments of significant UniProt reference proteomes sequence hits to the HMM. A higher-quality HMM is built from the MSA, with parameters reflecting the frequencies of amino acid residues observed at individual positions in the MSA.</p>
+                <p>The HMM with position-specific parameters is used as an input to the <i>hmmsearch</i> program which is used to find regions of sequences corresponding to 3D structures from the <a href="https://www.ebi.ac.uk/pdbe/">Protein Data Bank (PDB)</a> similar to the original sequence input. At the same time, the information content at individual positions in the HMM is calculated using the <a href="https://skylign.org/">Skylign</a> server. If an HMM file is used an input to 3DPatch, previous steps are skipped and the submitted HMM is used directly as an input to <i>hmmsearch</i> and Skylign.</p>
+                <p>Mapping between individual residues in the identified PDB structures and positions in the HMM is obtained from the alignment of sequences corresponding to respective 3D structures to the HMM. These alignments can be visualized in the <a href="#sequenceAlignmentHelpSection">sequence alignment</a> window. <a href="#hmmCoverageHelpSection">Coverage of HMM positions by the PDB structures</a> is illustrated using few informative structures, while a list of other PDB structures containing a hit to the HMM is generated. Any of these structures can then be visualized with residue-level <a href="#colorScalingHelpSection">information content-based mark-up</a> using the <a href="https://webchemdev.ncbr.muni.cz/Litemol/">LiteMol</a> viewer.</p>
+            </section>
+            <section id="inputHelpSection">
+                <h3>Input</h3>
+                <p>Input to 3DPatch can be either a single protein sequence or an HMM file. These inputs must be in formats recognized by the immediately called HMMER programs (<i>phmmer</i> or <i>hmmsearch</i>, respectively). Refer to the <a href="https://hmmer-web-docs.readthedocs.io/en/latest/searches.html">HMMER-web documentation</a> to find detailed information on the format requirements.</p>
+                <p>If sequence input is used, all whitespace characters are removed before the sequence is sent to <i>phmmer</i>. This allows the user to copy and paste the sequence content of newline-separated FASTA files with fixed line length.</p>
+            </section>
+            <section id="savePointHelpSection">
+                <h3>Saving and loading state</h3>
+                <p>Save point files can be created once the necessary information is available. Most importantly, all save point files contain the HMM information content profile and the list of PDB structures illustrating the coverage of the HMM by 3D structures. Optionally, if a structure was selected when the save point file was created, it will be immediately shown in the LiteMol plugin upon loading. Note that it is also possible to save the view of a structure not included in the HMM structure coverage illustration this way.</p>
+                <p>Loading state from a save point file recreates the HMM information content profile graph, HMM structure coverage illustration, and the sequence alignment window. Optionally, the previously selected 3D structure is visualized.</p>
+                <p>It is possible to select a new structure from the HMM structure coverage illustration for information content-based mark-up when loading state from a save point file.</p>
+                <p>Some actions are disabled when loading state from a save point file. New search using a sequence or an HMM file input must be performed to have them enabled. These actions are:<ul>
+                    <li>Selection of 3D structures not included in the HMM structure coverage illustration.</li>
+                    <li>Changing the color scaling option.</li>
+                    <li>Creation of new save point files.</li>
+                <ul></p>
+            </section>
+            <section id="searchParametersHelpSection">
+                <h3>Search parameters</h3>
+                <p>All search parameters currently take on default values selected by the HMMER programs, the HMMER web server, and the Skylign server. HMMER web server default settings take precedence over those used by HMMER programs.</p>
+                <p>In the case of the sequence input route, the initial <i>phmmer</i> search against UniProt reference proteomes uses an HMM with position-independent parameters derived from the BLOSUM62 substitution scoring matrix. Position-independent gap opening and gap extension probabilities are set to 0.02 and 0.4, respectively.</p>
+                <p>Per-target and per-domain reporting E-value thresholds are set to 1.0 for both <i>phmmer</i> and <i>hmmsearch</i>. Per-target and per-domain inclusion (significant hit) E-value thresholds are set to 0.01 and 0.03, respectively.</p>
+                <p>No taxonomy-based filtering of hits is performed.</p>
+            </section>
+            <section id="sequenceAlignmentHelpSection">
+                <h3>Sequence alignment</h3>
+                <p>The contents of this window vary depending on the input type. If sequence input was used, consensus sequence representing the HMM built from the <i>phmmer</i> search results, input sequence aligned to this HMM, and optionally the alignment of the selected PDB chain sequence will be shown. If HMM file input was used, there is no input sequence alignment.</p>
+                <p>The HMM consensus sequence is shown on the line starting with <span style="font-family:monospace">CONS</span>. It contains one residue per HMM position. The consensus sequence is read either from the HMM built by HMMER-web from the <i>phmmer</i> search results, or from the HMM file uploaded.</p>
+                <p>If the sequence input route was utilized, the alignment of the input sequence to the HMM built from the <i>phmmer</i> search results is shown on the line starting with <span style="font-family:monospace">INPUT</span>.</p>
+                <p>If some structure is selected for information content-based mark-up, the sequence of the marked-up region aligned to the HMM, and optionally to the input sequence, is shown on line starting with the PDB chain ID.</p>
+                <p>Note that residues assigned to insert states are not shown in the sequence alignment window.</p>
+            </section>
+            <section id="hmmCoverageHelpSection">
+                <h3>HMM structure coverage</h3>
+                <p>When <i>hmmsearch</i> is called and PDB is used as the sequence database, a list of PDB chains containing a hit to the HMM is returned. Each PDB chain can contain multiple sequence regions (called <i>domains</i> in HMMER terminology) aligned to the HMM. Score is assigned to each of these alignments. E-value reflecting the scores of individual domain alignments is assigned to each PDB chain. The list of returned PDB chains is sorted by ascending chain E-value.</p>
+                <p>The list of PDB chain IDs is iterated through, starting with the chain with the lowest assigned E-value. Domains recognized within each chain are iterated through in the order of their proximity to the protein N-terminus, starting with the most N-terminal one.</p>
+                <p>For each domain, a list HMM positions involved in the alignment of the domain sequence to the HMM is generated. If the HMM structure coverage illustration currently contains no domains, or if the number of new (previously uncovered) HMM positions covered by the alignment of the current domain is at least <i>N</i>, the domain is added to the HMM structure coverage illustration, and the list of HMM positions covered by 3D structures is updated. The value of <i>N</i> is currently set to 40 positions.</p>
+                <p>If a domain does not meet the conditions stated above, it does not appear in the HMM structure coverage illustration. However, it can still be visualized by manually selecting it from the drop-down list of all domain hits to the HMM. Each domain in the list is characterized by the PDB chain ID, the span of chain sequence residues involved in the alignment, and the span of HMM positions covered by the alignment.</p>
+                <p><strong>Note</strong> that not all PDB chains containing hits to the HMM are treated equally by HMMER-web. When multiple chains have the same sequence, they would yield the same domain hits spanning the same residues. Each hit returned by <i>hmmsearch</i> corresponds to a unique chain sequence, which can be shared by one or more PDB chain IDs. HMMER-web uses one of these PDB chain IDs as the hit <i>accession</i> identifier. 3DPatch labels this as the <i>reference</i> chain ID for the group of chain IDs sharing the same sequence. A table of reference PDB chain IDs along with a list of comma-separated chain IDs they represent can be accessed from the 3DPatch website once the search is finished. It may not be possible to display this table in some browsers when Adblock is enabled. It is currently only possible to select the reference PDB chain IDs for visualization. It is not possible to select 3D structures from the drop-down menu when state is loaded from a save point file.</p>
+            </section>
+            <section id="colorScalingHelpSection">
+                <h3>Color scaling options</h3>
+                <p>3DPatch currently implements four information content color scaling options. Each of these options partitions the information content range into ten bins and assigns a color from the color spectrum to all information content values falling to a specific bin. The options differ by the transformation applied to individual information content values and by value taken as the information content maximum. These options are:<ol>
+                    <li><i>Linear (absolute)</i>, which uses the maximum theoretical information content (appr. 6.45) as the maximum. The information content range is split evenly into ten bins, each covering around 0.65 bits. This is the default option.</li>
+                    <li><i>Linear (relative)</i>, which uses the maximum observed information content as the maximum. The information content range is split evenly into ten bins, each covering one tenth of the maximum observed information content value. <strong>Note</strong> that the maximum value is calculated across all positions in the HMM, not only those covered by the currently visualized PDB structure.</li>
+                    <li><i>Exponential (absolute)</i>, which uses <span style="font-family:monospace">exp</span>(maximum theoretical information content), appr. 634.68, as the maximum. The range is split evenly into ten bins, each covering around 63.47 units. Values of information content for which <span style="font-family:monospace">exp</span>(information content) falls into the the range of the bin are assigned the corresponding color. For example, the first color is assigned to positions with information content between <span style="font-family:monospace">log</span>(0) and <span style="font-family:monospace">log</span>(63.47), <i>i.e.</i>, between 0 (<span style="font-family:monospace">-inf</span>) and 4.15 bits.</li>
+                    <li><i>Exponential (relative)</i>, which is the same as <i>Exponential (absolute)</i>, but uses <span style="font-family:monospace">exp</span>(maximum observed information content) as the maximum.</li>
+                </ol></p>
+                <p>The color scaling option used can be freely changed after the calculations had finished without the need to repeat the preceding HMMER searches. Note that changing the color scaling option is not possible when viewing the results of previous 3DPatch sessions, <i>i.e.</i>, when loading the state from a save point file.</p>
+                <p>Coloring of residues outside of the alignment region and insert state residues (green) and residues belonging to other chains (light blue) is unaffected by the color scaling choice.</p>
+            </section>
+            <section>
+                <h3>Misc</h3>
+                <p>It is possible that the 3DPatch process hangs if HMMER-web servers are overloaded. You may want to reload the page and repeat the search, or try again later.</p>
+                <p>It may not be possible to view the information content-based mark-up of a specific structure, even if its exact sequence is entered. See the note in the <a href="#hmmCoverageHelpSection">HMM structure coverage</a> section.</p>
+                <p>It is not possible to clear the LiteMol viewer once some structure has been selected. The easiest way to clear the LiteMol plugin is to reapply the color scaling method.</p>
+            </section>
+        </main>
+    </body>
+</html>
