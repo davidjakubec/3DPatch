@@ -31,7 +31,3 @@ print(len(set([tuple(i) for i in color_scale])), len(color_scale))
 
 with open('conservationColorScale.js', encoding = 'UTF-8', mode = 'w') as file:
     file.write('var conservationColorScale = ' + str(color_scale) + ';')
-
-#with open('color_scale', encoding = 'UTF-8', mode = 'w') as file:
-#    for color in color_scale:
-#        file.write(' '.join([str(i) for i in color]) + '\n')
