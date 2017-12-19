@@ -5,7 +5,7 @@
         <title>3DPatch</title>
         <link href="https://fonts.googleapis.com/css?family=Roboto+Mono" rel="stylesheet">
         <link href="styles/style.css" rel="stylesheet" type="text/css">
-        <script src="styles/conservationColorScale/conservationColorScale.js"></script>
+        <script src="extras/conservationColorScale/conservationColorScale.js"></script>
         <script src="scripts/d3.min.js"></script>
         <link href="LiteMol/css/LiteMol-plugin-light.min.css", rel="stylesheet", type="text/css">
         <script src="LiteMol/js/LiteMol-plugin.js"></script>
@@ -16,7 +16,7 @@
                 <div id="headerLeftDiv">
                     <h1>3DPatch</h1>
                     <p>3DPatch is a server facilitating residue-level information content calculations, homology searches, and 3D structure conservation level-based mark-up for protein sequence or hidden Markov model (HMM) queries.</p>
-                    <p>See how it works in <a href="help.html">Help</a>.</p>
+                    <p>See how it works in <a href="extras/help.html">Help</a>.</p>
                 </div>
                 <div id="headerRightDiv">
                     <img width="350" height="160" alt="mark-up-example" src="styles/images/header-example.png">
@@ -57,7 +57,7 @@
                     <p>Click on a box to view the structure</p>
                     <svg id="domainCoverageSVG" width="620"></svg>
                     <hr>
-                    <p>Looking for a different structure ? <a id="referenceStructuresListAnchor" href="" rel="noopener noreferrer" target="_blank">Find the reference PDB chain ID</a> and search for it below</p>
+                    <p>Looking for a different structure ? <a id="referenceStructuresListAnchor" href="" rel="noopener noreferrer" target="_blank">Look up the reference PDB chain ID</a> and select it here</p>
                     <p>
                         <select id="structureSelection"></select>
                         <button id="selectStructureButton" autocomplete="off">Select structure</button>
