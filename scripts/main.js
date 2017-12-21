@@ -30,9 +30,10 @@ Set.prototype.difference = function(setB) {
 
 /*----------------------------------------------------------------------------*/
 
-function printToInfoBoxDiv(text, link = "") {
+function printToInfoBoxDiv(text, link = "", color = "black") {
     var infoBoxDiv = document.getElementById("infoBoxDiv");
     var newParagraph = document.createElement("p");
+    newParagraph.style.color = color;
     var timeAndDate = new Date();
     var timeAndDateString = timeAndDate.toLocaleDateString() + " " + timeAndDate.toLocaleTimeString();
     var newParagraphText = document.createTextNode(timeAndDateString + " >>> " + text);
@@ -49,11 +50,10 @@ function printToInfoBoxDiv(text, link = "") {
     infoBoxDiv.scrollTop = infoBoxDiv.scrollHeight;
 }
 
-function printToSequenceAlignmentDiv(text, id = "", color = "black") {
+function printToSequenceAlignmentDiv(text, id = "") {
     var sequenceAlignmentDiv = document.getElementById("sequenceAlignmentDiv");
     var newParagraph = document.createElement("p");
     newParagraph.id = id;
-    newParagraph.style.color = color;
     var newParagraphText = document.createTextNode(text);
     newParagraph.appendChild(newParagraphText);
     sequenceAlignmentDiv.appendChild(newParagraph);
@@ -119,17 +119,17 @@ function checkInputSequence(seq) {
     var seqUniqueCharacters = new Set(seq);
     var nucleotides = new Set("ACGT");
     if (seqLength < 10) {
-        printToInfoBoxDiv("ERROR: input sequence must contain at least 10 characters.");
+        printToInfoBoxDiv("ERROR: input sequence must contain at least 10 characters.", "", "red");
         enableInputButtons();
         throw new Error("Input sequence must contain at least 10 characters.");
     }
     if ((seqLength === 10) && (seqUniqueCharacters.size < 6)) {
-        printToInfoBoxDiv("ERROR: at least 6 unique characters must be present in an input sequence containing exactly 10 characters.");
+        printToInfoBoxDiv("ERROR: at least 6 unique characters must be present in an input sequence containing exactly 10 characters.", "", "red");
         enableInputButtons();
         throw new Error("At least 6 unique characters must be present in an input sequence containing exactly 10 characters.");
     }
     if ((seqLength > 10) && (seqUniqueCharacters.size === (seqUniqueCharacters.intersection(nucleotides)).size)) {
-        printToInfoBoxDiv("ERROR: at least 1 character which is not A/C/G/T must be present in an input sequence containing more than 10 characters.");
+        printToInfoBoxDiv("ERROR: at least 1 character which is not A/C/G/T must be present in an input sequence containing more than 10 characters.", "", "red");
         enableInputButtons();
         throw new Error("At least 1 character which is not A/C/G/T must be present in an input sequence containing more than 10 characters.");
     }
@@ -145,7 +145,7 @@ document.querySelector("#clearSequenceInputButton").onclick = function() {
 
 document.querySelector("#submitHMMButton").onclick = function() {
     if (document.querySelector("#HMMInput").files.length === 0) {
-        printToInfoBoxDiv("ERROR: no file was selected.");
+        printToInfoBoxDiv("ERROR: no file was selected.", "", "red");
         throw new Error("No file was selected.");
     }
     initialize();
@@ -160,7 +160,7 @@ document.querySelector("#submitHMMButton").onclick = function() {
 
 document.querySelector("#loadSavePointButton").onclick = function() {
     if (document.querySelector("#savePointInput").files.length === 0) {
-        printToInfoBoxDiv("ERROR: no file was selected.");
+        printToInfoBoxDiv("ERROR: no file was selected.", "", "red");
         throw new Error("No file was selected.");
     }
     initialize();
@@ -219,7 +219,7 @@ function phmmerCallback(request) {
         printToInfoBoxDiv("Checking significant hits ...");
         checkSignificantHitsRequest(jobID);
     } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 500)) {
-        printToInfoBoxDiv("ERROR: something went wrong during phmmer search.");
+        printToInfoBoxDiv("ERROR: something went wrong during phmmer search.", "", "red");
         enableInputButtons();
         throw new Error("Something went wrong during phmmer search.");
     }
@@ -236,12 +236,12 @@ function checkSignificantHitsRequest(jobID) {
 function checkSignificantHitsCallback(request, jobID) {
     var topResultsStats = JSON.parse(request.response)["results"]["stats"];
     if (Number(topResultsStats["nhits"]) === 0) {
-        printToInfoBoxDiv("ERROR: no hits were found using phmmer search.");
+        printToInfoBoxDiv("ERROR: no hits were found using phmmer search.", "", "red");
         enableInputButtons();
         throw new Error("No hits were found using phmmer search.");
     }
     if (Number(topResultsStats["nincluded"]) === 0) {
-        printToInfoBoxDiv("ERROR: no significant hits were found using phmmer search.");
+        printToInfoBoxDiv("ERROR: no significant hits were found using phmmer search.", "", "red");
         enableInputButtons();
         throw new Error("No significant hits were found using phmmer search.");
     }
@@ -269,7 +269,7 @@ function hmmsearchCallback(request, jobID) {
 //        console.log(hits);
         printToInfoBoxDiv("Checking hits ...");
         if (hits.length === 0) {
-            printToInfoBoxDiv("ERROR: no structures were found using hmmsearch search.");
+            printToInfoBoxDiv("ERROR: no structures were found using hmmsearch search.", "", "red");
             enableInputButtons();
             throw new Error("No structures were found using hmmsearch search.");
         }
@@ -294,7 +294,7 @@ function hmmsearchCallback(request, jobID) {
     } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 400)) {
         delayedHmmsearchRequest(jobID);
     } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 500)) {
-        printToInfoBoxDiv("ERROR: something went wrong during hmmsearch search.");
+        printToInfoBoxDiv("ERROR: something went wrong during hmmsearch search.", "", "red");
         enableInputButtons();
         throw new Error("Something went wrong during hmmsearch search.");
     }
@@ -811,7 +811,7 @@ function HMMInputHmmsearchCallback(request, HMMFile) {
 //        console.log(hits);
         printToInfoBoxDiv("Checking hits ...");
         if (hits.length === 0) {
-            printToInfoBoxDiv("ERROR: no structures were found using hmmsearch search.");
+            printToInfoBoxDiv("ERROR: no structures were found using hmmsearch search.", "", "red");
             enableInputButtons();
             throw new Error("No structures were found using hmmsearch search.");
         }
@@ -834,7 +834,7 @@ function HMMInputHmmsearchCallback(request, HMMFile) {
 //        console.log(HMMInputHmmsearchDomainAlignments);
         skylignURLRequest(HMMFile);
     } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 400)) {
-        printToInfoBoxDiv("ERROR: something went wrong with your search. Did you upload a valid HMM file ?");
+        printToInfoBoxDiv("ERROR: something went wrong with your search. Did you upload a valid HMM file ?", "", "red");
         enableInputButtons();
         throw new Error("Something went wrong with your search. Did you upload a valid HMM file ?");
     }
@@ -846,7 +846,7 @@ function readInputSavePointFileCallback(reader, savePointFile) {
     try {
         var savePoint = JSON.parse(reader.result);
     } catch (e) {
-        printToInfoBoxDiv("ERROR: input doesn't look like a JSON file.");
+        printToInfoBoxDiv("ERROR: input doesn't look like a JSON file.", "", "red");
         enableInputButtons();
         throw new Error("Input doesn't look like a JSON file.");
     }
@@ -893,7 +893,7 @@ function readInputSavePointFileCallback(reader, savePointFile) {
 
 function checkSavePoint(savePoint) {
     if (Object.keys(savePoint).indexOf("informationContentProfile") === -1) {
-        printToInfoBoxDiv("ERROR: input doesn't look like a save point file.");
+        printToInfoBoxDiv("ERROR: input doesn't look like a save point file.", "", "red");
         enableInputButtons();
         throw new Error("Input doesn't look like a save point file.");
     }
