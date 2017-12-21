@@ -102,12 +102,7 @@ document.querySelector("#submitSequenceButton").onclick = function() {
     initialize();
     disableInputButtons();
     window.inputMode = "sequence";
-    window.inputSequence = document.querySelector("#sequenceInput").value.trim().split("\n");
-    if (inputSequence[0][0] === ">") {
-        inputSequence = inputSequence.slice(1).join("").toUpperCase().replace(/\s+/g, "");
-    } else {
-        inputSequence = inputSequence.join("").toUpperCase().replace(/\s+/g, "");
-    }
+    window.inputSequence = document.querySelector("#sequenceInput").value.toUpperCase().replace(/\s+/g, "");
     printToInfoBoxDiv("Accepted sequence (" + inputSequence.length + " residues): " + inputSequence);
     printToInfoBoxDiv("Checking input ...");
     checkInputSequence(inputSequence);

@@ -53,6 +53,10 @@ main {
     border: 2px solid black;
 }
 
+#sequenceInput {
+    resize: none;
+}
+
 #informationContentProfileSection {
     margin-top: 10px;
 }

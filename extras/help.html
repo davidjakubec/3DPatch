@@ -22,7 +22,7 @@
             <section id="inputHelpSection">
                 <h3>Input</h3>
                 <p>Input to 3DPatch can be either a single protein sequence or an HMM file. These inputs must be in formats recognized by the immediately called HMMER programs (<i>phmmer</i> or <i>hmmsearch</i>, respectively). Refer to the <a href="https://hmmer-web-docs.readthedocs.io/en/latest/searches.html">HMMER-web documentation</a> to find detailed information on the format requirements.</p>
-                <p>If sequence input is used, all whitespace characters are removed before <i>phmmer</i> is called. This allows the user to, <i>e.g.</i>, copy and paste the sequence content of newline-separated FASTA files with fixed line length.</p>
+                <p>When sequence input is used, all whitespace characters are removed from the sequence before <i>phmmer</i> is called. If a header line beginning with the <span style="font-family:monospace">&gt;</span> symbol is found preceding the sequence, then the line is ignored.</p>
             </section>
             <section id="savePointHelpSection">
                 <h3>Saving and loading state</h3>
@@ -72,7 +72,8 @@
             <section>
                 <h3>Misc</h3>
                 <p>It is possible that the 3DPatch process hangs when HMMER-web servers are overloaded. You may want to reload the page and repeat the search, or try again later.</p>
-                <p>It may not be possible to view the information content-based mark-up of a specific structure, even if its exact sequence is entered. See the note in the <a href="#hmmCoverageHelpSection">HMM structure coverage</a> section.</p>
+                <p>The PDB sequence database used by HMMER-web may not be fully up-to-date with the <a href="https://www.ebi.ac.uk/pdbe/">PDBe</a>. Newly added structures may not appear in the list of hits, while structures made obsolete recently may fail to visualize.</p>
+                <p>It may not be possible to view the mark-up of a specific structure, even if its exact sequence is entered. See the note in the <a href="#hmmCoverageHelpSection">HMM structure coverage</a> section.</p>
                 <p>It is not possible to clear the LiteMol viewer once some structure has been selected. The easiest way to clear the LiteMol plugin is to reapply the color scaling method.</p>
             </section>
         </main>
