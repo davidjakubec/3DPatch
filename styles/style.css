@@ -23,12 +23,12 @@ header {
 
 #headerLeftDiv {
     display: inline-block;
-    width: 685px;
+    width: 675px;
 }
 
 #headerRightDiv {
     display: inline-block;
-    margin-left: 100px;
+    margin-left: 110px;
 }
 
 main {
