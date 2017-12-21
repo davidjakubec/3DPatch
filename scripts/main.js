@@ -111,7 +111,7 @@ document.querySelector("#submitSequenceButton").onclick = function() {
     printToInfoBoxDiv("Accepted sequence (" + inputSequence.length + " residues): " + inputSequence);
     printToInfoBoxDiv("Checking input ...");
     checkInputSequence(inputSequence);
-    phmmerRequest(inputSequence, "uniprotrefprot", phmmerCallback);
+    phmmerRequest(inputSequence);
 }
 
 function checkInputSequence(seq) {
@@ -187,7 +187,7 @@ document.querySelector("#selectStructureButton").onclick = function() {
     var hmmEnd = domain[1].hmmEnd;
     d3.select("#selectedSequenceAlignment").remove();
     printToSequenceAlignmentDiv(moleculeData[0] +"\t" + "-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(savePoint.informationContentProfile.length - hmmEnd), "selectedSequenceAlignment");
-    representativeMoleculemmCIFRequest(moleculeData, representativeMoleculemmCIFCallback);
+    representativeMoleculemmCIFRequest(moleculeData);
 }
 
 document.querySelector("#applyScalingButton").onclick = function() {
@@ -197,16 +197,16 @@ document.querySelector("#applyScalingButton").onclick = function() {
 
 /*----------------------------------------------------------------------------*/
 
-function phmmerRequest(seq, seqdb, callback) {
+function phmmerRequest(seq) {
     var url = "https://www.ebi.ac.uk/Tools/hmmer/search/phmmer";
     var data = new FormData();
     data.append("algo", "phmmer");
     data.append("seq", seq);
-    data.append("seqdb", seqdb);
+    data.append("seqdb", "uniprotrefprot");
     var request = new XMLHttpRequest();
     request.open("POST", url, true);
     request.setRequestHeader("Accept", "text/html");
-    request.onreadystatechange = callback.bind(this, request);
+    request.onreadystatechange = phmmerCallback.bind(this, request);
     printToInfoBoxDiv("Starting phmmer search against UniProt reference proteomes.");
     request.send(data);
 }
@@ -217,7 +217,7 @@ function phmmerCallback(request) {
         printToInfoBoxDiv("phmmer search against UniProt reference proteomes finished, results: ", responseURL);
         var jobID = responseURL.split("/")[6];
         printToInfoBoxDiv("Checking significant hits ...");
-        checkSignificantHitsRequest(jobID, checkSignificantHitsCallback);
+        checkSignificantHitsRequest(jobID);
     } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 500)) {
         printToInfoBoxDiv("ERROR: something went wrong during phmmer search.");
         enableInputButtons();
@@ -225,11 +225,11 @@ function phmmerCallback(request) {
     }
 }
 
-function checkSignificantHitsRequest(jobID, callback) {
+function checkSignificantHitsRequest(jobID) {
     var url = "https://www.ebi.ac.uk/Tools/hmmer/results/" + jobID + "?range=1,1&ali=0&output=json";
     var request = new XMLHttpRequest();
     request.open("GET", url, true);
-    request.onload = callback.bind(this, request, jobID);
+    request.onload = checkSignificantHitsCallback.bind(this, request, jobID);
     request.send(null);
 }
 
@@ -245,10 +245,10 @@ function checkSignificantHitsCallback(request, jobID) {
         enableInputButtons();
         throw new Error("No significant hits were found using phmmer search.");
     }
-    hmmsearchRequest(jobID, hmmsearchCallback);
+    hmmsearchRequest(jobID);
 }
 
-function hmmsearchRequest(jobID, callback) {
+function hmmsearchRequest(jobID) {
     var url = "https://www.ebi.ac.uk/Tools/hmmer//search/hmmsearch?uuid=" + jobID + ".1";
     var data = new FormData();
     data.append("algo", "hmmsearch");
@@ -256,7 +256,7 @@ function hmmsearchRequest(jobID, callback) {
     var request = new XMLHttpRequest();
     request.open("POST", url, true);
     request.setRequestHeader("Accept", "application/json");
-    request.onreadystatechange = callback.bind(this, request, jobID);
+    request.onreadystatechange = hmmsearchCallback.bind(this, request, jobID);
     printToInfoBoxDiv("Starting hmmsearch search against PDB.");
     request.send(data);
 }
@@ -290,7 +290,7 @@ function hmmsearchCallback(request, jobID) {
             }
         }
 //        console.log(hmmsearchDomainAlignments);
-        phmmerResultsHMMRequest(responseURL, phmmerResultsHMMCallback);
+        phmmerResultsHMMRequest(responseURL);
     } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 400)) {
         delayedHmmsearchRequest(jobID);
     } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 500)) {
@@ -313,14 +313,14 @@ function generateReferenceStructuresList(hits) {
 
 function delayedHmmsearchRequest(jobID) {
     printToInfoBoxDiv("Status 400, trying again ...");
-    var timeoutID = window.setTimeout(hmmsearchRequest, 2000, jobID, hmmsearchCallback);
+    var timeoutID = window.setTimeout(hmmsearchRequest, 2000, jobID);
 }
 
-function phmmerResultsHMMRequest(resultsURL, callback) {
+function phmmerResultsHMMRequest(resultsURL) {
     var url = resultsURL.replace("results", "download") + "?format=hmm";
     var request = new XMLHttpRequest();
     request.open("GET", url, true);
-    request.onload = callback.bind(this, request);
+    request.onload = phmmerResultsHMMCallback.bind(this, request);
     printToInfoBoxDiv("Requesting phmmer search results HMM ...");
     request.send(null);
 }
@@ -330,10 +330,10 @@ function phmmerResultsHMMCallback(request) {
 //    console.log(phmmerResultsHMM);
     window.HMMConsensusSequence = phmmerResultsHMM.split("\n").filter(function (line) {return (line.trim().split(/\s+/g).length === 26);}).map(function (line) {return line.split(/\s+/g).slice(-4, -3)[0];}).join("");
 //    console.log(HMMConsensusSequence);
-    alignInputToHMMRequest(inputSequence, phmmerResultsHMM, alignInputToHMMCallback);
+    alignInputToHMMRequest(inputSequence, phmmerResultsHMM);
 }
 
-function alignInputToHMMRequest(seq, hmm, callback) {
+function alignInputToHMMRequest(seq, hmm) {
     var url = "https://wwwdev.ebi.ac.uk/Tools/hmmer/align";
     var data = new FormData();
     data.append("seq", ">seq\n" + seq);
@@ -342,7 +342,7 @@ function alignInputToHMMRequest(seq, hmm, callback) {
     request.open("POST", url, true);
     request.setRequestHeader("Accept", "text/plain");
     var hmmBlob = new Blob([hmm], {type: "text/plain"});
-    request.onreadystatechange = callback.bind(this, request, hmmBlob);
+    request.onreadystatechange = alignInputToHMMCallback.bind(this, request, hmmBlob);
     printToInfoBoxDiv("Aligning input sequence to the phmmer search results HMM ...");
     request.send(data);
 }
@@ -351,11 +351,11 @@ function alignInputToHMMCallback(request, hmmBlob) {
     if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 200)) {
         window.alignedInputSequence = request.response.split("\n")[2].split(/\s+/)[1];
 //        console.log(alignedInputSequence);
-        skylignURLRequest(hmmBlob, skylignURLCallback);
+        skylignURLRequest(hmmBlob);
     }
 }
 
-function skylignURLRequest(file, callback) {
+function skylignURLRequest(file) {
     var url = "http://skylign.org/";
     var data = new FormData();
     data.append("file", file);
@@ -363,7 +363,7 @@ function skylignURLRequest(file, callback) {
     var request = new XMLHttpRequest();
     request.open("POST", url, true);
     request.setRequestHeader("Accept", "application/json");
-    request.onreadystatechange = callback.bind(this, request);
+    request.onreadystatechange = skylignURLCallback.bind(this, request);
     printToInfoBoxDiv("Requesting HMM information content calculation.");
     request.send(data);
 }
@@ -372,15 +372,15 @@ function skylignURLCallback(request) {
     if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 200)) {
         var responseURL = JSON.parse(request.response)["url"];
         printToInfoBoxDiv("HMM information content calculation finished, results: ", responseURL);
-        skylignLogoRequest(responseURL, skylignLogoCallback);
+        skylignLogoRequest(responseURL);
     }
 }
 
-function skylignLogoRequest(resultsURL, callback) {
+function skylignLogoRequest(resultsURL) {
     var request = new XMLHttpRequest();
     request.open("GET", resultsURL, true);
     request.setRequestHeader("Accept", "application/json");
-    request.onload = callback.bind(this, request);
+    request.onload = skylignLogoCallback.bind(this, request);
     request.send(null);
 }
 
@@ -673,7 +673,7 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoi
                 var hmmEnd = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][1].hmmEnd;
                 d3.select("#selectedSequenceAlignment").remove();
                 printToSequenceAlignmentDiv(moleculeData[0] +"\t" + "-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(hmmLength - hmmEnd), "selectedSequenceAlignment");
-                representativeMoleculemmCIFRequest(moleculeData, representativeMoleculemmCIFCallback);
+                representativeMoleculemmCIFRequest(moleculeData);
             });
         var label = chart.append("text")
             .text(domain[0][0])
@@ -695,11 +695,11 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoi
     }
 }
 
-function representativeMoleculemmCIFRequest(moleculeData, callback) {
+function representativeMoleculemmCIFRequest(moleculeData) {
     var url = "https://www.ebi.ac.uk/pdbe/static/entry/" + moleculeData[0].split("_")[0] + "_updated.cif";
     var request = new XMLHttpRequest();
     request.open("GET", url, true);
-    request.onload = callback.bind(this, request, moleculeData);
+    request.onload = representativeMoleculemmCIFCallback.bind(this, request, moleculeData);
     request.send(null);
 }
 
@@ -786,10 +786,10 @@ function visualizeMolecule(moleculeData, structureInformationContentProfile) {
 function readInputHMMFileCallback(reader, HMMFile) {
     window.HMMConsensusSequence = reader.result.split("\n").filter(function (line) {return (line.trim().split(/\s+/g).length === 26);}).map(function (line) {return line.split(/\s+/g).slice(-4, -3)[0];}).join("");
 //    console.log(HMMConsensusSequence);
-    HMMInputHmmsearchRequest(HMMFile, HMMInputHmmsearchCallback);
+    HMMInputHmmsearchRequest(HMMFile);
 }
 
-function HMMInputHmmsearchRequest(HMMFile, callback) {
+function HMMInputHmmsearchRequest(HMMFile) {
     var url = "https://www.ebi.ac.uk/Tools/hmmer/search/hmmsearch";
     var data = new FormData();
     data.append("algo", "hmmsearch");
@@ -798,7 +798,7 @@ function HMMInputHmmsearchRequest(HMMFile, callback) {
     var request = new XMLHttpRequest();
     request.open("POST", url, true);
     request.setRequestHeader("Accept", "application/json");
-    request.onreadystatechange = callback.bind(this, request, HMMFile);
+    request.onreadystatechange = HMMInputHmmsearchCallback.bind(this, request, HMMFile);
     printToInfoBoxDiv("Starting hmmsearch search against PDB.");
     request.send(data);
 }
@@ -832,7 +832,7 @@ function HMMInputHmmsearchCallback(request, HMMFile) {
             }
         }
 //        console.log(HMMInputHmmsearchDomainAlignments);
-        skylignURLRequest(HMMFile, skylignURLCallback);
+        skylignURLRequest(HMMFile);
     } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 400)) {
         printToInfoBoxDiv("ERROR: something went wrong with your search. Did you upload a valid HMM file ?");
         enableInputButtons();
@@ -875,7 +875,7 @@ function readInputSavePointFileCallback(reader, savePointFile) {
         var hmmStart = savePoint.domainInformationContentProfiles[savePoint.domainIndex][1].hmmStart;
         var hmmEnd = savePoint.domainInformationContentProfiles[savePoint.domainIndex][1].hmmEnd;
         printToSequenceAlignmentDiv(moleculeData[0] + "\t" + "-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(savePoint.informationContentProfile.length - hmmEnd), "selectedSequenceAlignment");
-        representativeMoleculemmCIFRequest(moleculeData, representativeMoleculemmCIFCallback);
+        representativeMoleculemmCIFRequest(moleculeData);
     }
     if (Object.keys(savePoint).indexOf("selectedStructure") !== -1) {
         var domain = savePoint.selectedStructure;
@@ -886,7 +886,7 @@ function readInputSavePointFileCallback(reader, savePointFile) {
         var hmmStart = domain[1].hmmStart;
         var hmmEnd = domain[1].hmmEnd;
         printToSequenceAlignmentDiv(moleculeData[0] +"\t" + "-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(savePoint.informationContentProfile.length - hmmEnd), "selectedSequenceAlignment");
-        representativeMoleculemmCIFRequest(moleculeData, representativeMoleculemmCIFCallback);
+        representativeMoleculemmCIFRequest(moleculeData);
     }
     printToInfoBoxDiv("DONE !");
 }
