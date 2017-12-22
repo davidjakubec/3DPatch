@@ -301,9 +301,13 @@ function hmmsearchCallback(request, jobID) {
 }
 
 function generateReferenceStructuresList(hits) {
+    window.isoseqGroups = new Map();
     var referenceStructuresList = [];
     for (var hit of hits) {
-        var line = hit["acc"] + "\t" + hit["pdbs"].filter(function (id) {return (id !== hit["acc"]);}).sort().join(", ");
+        var refId = hit["acc"];
+        var isoseqIds = hit["pdbs"].filter(function (id) {return (id !== refId);}).sort();
+        isoseqGroups.set(refId, isoseqIds);
+        var line = refId + "\t" + isoseqIds.join(", ");
         referenceStructuresList.push(line);
     }
     var referenceStructuresListBlob = new Blob([referenceStructuresList.join("\n")], {type: "text/plain"});
@@ -588,6 +592,9 @@ function calculateDomainInformationContentProfiles(hmmInformationContentProfile,
             domainInformationContentProfiles.push([[domainAlignment[4], domainAlignment[3], domainAlignment[5], domainInformationContentProfile], {"hmmStart": hmmStart, "hmmEnd": hmmEnd}, domainAlignment[0]]);
         } else {
             otherDomains.push([[domainAlignment[4], domainAlignment[3], domainAlignment[5], domainInformationContentProfile], {"hmmStart": hmmStart, "hmmEnd": hmmEnd}, domainAlignment[0]]);
+        }
+        for (var isoseqId of isoseqGroups.get(domainAlignment[4])) {
+            otherDomains.push([[isoseqId, domainAlignment[3], domainAlignment[5], domainInformationContentProfile], {"hmmStart": hmmStart, "hmmEnd": hmmEnd}, domainAlignment[0]]);
         }
     }
 //    console.log(domainInformationContentProfiles);
