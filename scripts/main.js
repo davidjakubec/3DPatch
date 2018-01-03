@@ -394,7 +394,7 @@ function skylignLogoCallback(request) {
     var informationContentProfile = [];
     for (var i = 0; i < logo["height_arr"].length; i += 1) {
         var positionLetterHeights = logo["height_arr"][i];
-        var positionInformationContent = (positionLetterHeights.map(function (letter) {return Number(letter.split(":")[1]);})).reduce(function (a, b) {return a + b;}, 0);
+        var positionInformationContent = Math.round((positionLetterHeights.map(function (letter) {return Number(letter.split(":")[1]);})).reduce(function (a, b) {return a + b;}, 0) * 1000) / 1000;
         informationContentProfile.push(positionInformationContent);
     }
 //    console.log(informationContentProfile);
