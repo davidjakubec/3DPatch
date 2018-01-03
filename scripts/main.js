@@ -479,6 +479,10 @@ function plotInformationContentProfile(profile, yMax) {
     var line = d3.line()
         .x(function (d, i) {return x(i + 1);})
         .y(function (d) {return y(d);});
+    var area = d3.area()
+        .x(function (d, i) {return x(i + 1);})
+        .y0(chartHeight)
+        .y1(function (d) {return y(d);});
     chart.append("g")
         .attr("transform", "translate(0, " + chartHeight + ")")
         .call(d3.axisBottom(x));
@@ -500,6 +504,10 @@ function plotInformationContentProfile(profile, yMax) {
         .attr("stroke", "steelblue")
         .attr("stroke-width", 1.5)
         .attr("d", line);
+    chart.append("path")
+        .datum(profile)
+        .attr("fill", "lightsteelblue")
+        .attr("d", area);
 }
 
 function plotInformationContentColorScale(method, xMax) {
