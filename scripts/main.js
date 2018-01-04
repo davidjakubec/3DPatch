@@ -61,7 +61,7 @@ function printToSequenceAlignmentDiv(text, id = "") {
 
 /*----------------------------------------------------------------------------*/
 
-function initialize() {
+function initialize(wipeSelectedDomain = true) {
     document.querySelector("#createSavePointFileButton").disabled = true;
     d3.select("#structureSelection").selectAll("*").remove();
     document.querySelector("#structureSelection").disabled = true;
@@ -70,12 +70,15 @@ function initialize() {
     d3.select("#informationContentProfileSVG").selectAll("*").remove();
     d3.select("#domainCoverageSVG").selectAll("*").remove();
     d3.select("#sequenceAlignmentDiv").selectAll("*").remove();
+    if (wipeSelectedDomain === true) {
+        window.selectedDomainGlobalObject = undefined;
+        window.applyScalingMode = false;
+    }
     if (window.plugin) {
         plugin.destroy();
     }
     LiteMolCallback();
     window.plugin = LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#FFFFFF", layoutState: {hideControls: true}});
-//    window.plugin = LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#FFFFFF"});
     d3.select("#informationContentColorScaleSVG").selectAll("*").remove();
 }
 
@@ -177,21 +180,33 @@ document.querySelector("#loadSavePointButton").onclick = function() {
 document.querySelector("#selectStructureButton").onclick = function() {
     d3.select("#domainCoverageSVG").selectAll("g").selectAll("rect").attr("fill", "MediumSeaGreen");
     var domain = JSON.parse(document.querySelector("#structureSelection").value);
-    var savePoint = returnOriginalSavePoint();
-    savePoint.selectedStructure = domain;
-    updateSavePoint(savePoint);
+    if (inputMode !== "savePoint") {
+        var savePoint = returnOriginalSavePoint();
+        savePoint.selectedStructure = domain;
+        updateSavePoint(savePoint);
+    }
     var moleculeData = domain[0];
+    window.selectedDomainGlobalObject = new Object();
+    selectedDomainGlobalObject.chainId = moleculeData[0];
+    selectedDomainGlobalObject.seqStart = moleculeData[1];
+    selectedDomainGlobalObject.seqEnd = moleculeData[2];
+    selectedDomainGlobalObject.domainIndex = -1;
     printToInfoBoxDiv("Selected structure: " + moleculeData[0] + ", printing sequence alignment ...");
     var alignedSequence = domain[2];
     var hmmStart = domain[1].hmmStart;
     var hmmEnd = domain[1].hmmEnd;
     d3.select("#selectedSequenceAlignment").remove();
-    printToSequenceAlignmentDiv(moleculeData[0] +"\t" + "-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(savePoint.informationContentProfile.length - hmmEnd), "selectedSequenceAlignment");
+    if (inputMode !== "savePoint") {
+        printToSequenceAlignmentDiv(moleculeData[0] +"\t" + "-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(savePoint.informationContentProfile.length - hmmEnd), "selectedSequenceAlignment");
+    } else {
+        printToSequenceAlignmentDiv(moleculeData[0] +"\t" + "-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(savePointInformationContentProfileLength - hmmEnd), "selectedSequenceAlignment");
+    }
     representativeMoleculemmCIFRequest(moleculeData);
 }
 
 document.querySelector("#applyScalingButton").onclick = function() {
-    initialize();
+    initialize(false);
+    window.applyScalingMode = true;
     normalizeInformationContentProfile();
 }
 
@@ -405,12 +420,16 @@ function skylignLogoCallback(request) {
 function normalizeInformationContentProfileCallback(logo, informationContentProfile) {
     var savePointObject = new Object();
     savePointObject.HMMConsensusSequence = HMMConsensusSequence;
-    printToInfoBoxDiv("Printing HMM consensus sequence ...");
+    if (applyScalingMode === false) {
+        printToInfoBoxDiv("Printing HMM consensus sequence ...");
+    }
     printSequencePositionIndices(HMMConsensusSequence.length);
     printToSequenceAlignmentDiv("CONS\t" + HMMConsensusSequence);
     if (inputMode === "sequence") {
         savePointObject.alignedInputSequence = alignedInputSequence;
-        printToInfoBoxDiv("Printing input sequence alignment ...");
+        if (applyScalingMode === false) {
+            printToInfoBoxDiv("Printing input sequence alignment ...");
+        }
         printToSequenceAlignmentDiv("INPUT\t" + alignedInputSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join(""));
     }
     savePointObject.informationContentProfile = informationContentProfile;
@@ -419,7 +438,9 @@ function normalizeInformationContentProfileCallback(logo, informationContentProf
     var maxTheoreticalInformationContent = Number(logo["max_height_theory"]);
     savePointObject.maxTheoreticalInformationContent = maxTheoreticalInformationContent;
     var maxExpTheoreticalInformationContent = Math.exp(maxTheoreticalInformationContent);
-    printToInfoBoxDiv("Plotting HMM information content profile ...");
+    if (applyScalingMode === false) {
+        printToInfoBoxDiv("Plotting HMM information content profile ...");
+    }
     plotInformationContentProfile(informationContentProfile, maxTheoreticalInformationContent);
     var normalizationMethod = document.querySelector("#scalingSelection").value;
     savePointObject.normalizationMethod = normalizationMethod;
@@ -616,8 +637,13 @@ function calculateDomainInformationContentProfiles(hmmInformationContentProfile,
     document.querySelector("#createSavePointFileButton").disabled = false;
     document.querySelector("#applyScalingButton").disabled = false;
     enableInputButtons();
-    printToInfoBoxDiv("Plotting HMM structure coverage ...");
+    if (applyScalingMode === false) {
+        printToInfoBoxDiv("Plotting HMM structure coverage ...");
+    }
     plotDomainCoverage(hmmInformationContentProfile.length, domainInformationContentProfiles, savePoint);
+    if ((selectedDomainGlobalObject !== undefined) && (selectedDomainGlobalObject.domainIndex !== -1)) {
+        d3.select("#domainCoverageRect" + selectedDomainGlobalObject.domainIndex).attr("fill", "springgreen");
+    }
 }
 
 function updateSavePoint(savePoint) {
@@ -682,6 +708,11 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoi
                 d3.select(this).attr("fill", "springgreen");
                 var moleculeData = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][0];
 //                console.log(moleculeData);
+                window.selectedDomainGlobalObject = new Object();
+                selectedDomainGlobalObject.chainId = moleculeData[0];
+                selectedDomainGlobalObject.seqStart = moleculeData[1];
+                selectedDomainGlobalObject.seqEnd = moleculeData[2];
+                selectedDomainGlobalObject.domainIndex = d3.select(this).attr("domainIndex");
                 printToInfoBoxDiv("Selected structure: " + moleculeData[0] + ", printing sequence alignment ...");
                 var alignedSequence = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][2];
                 var hmmStart = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][1].hmmStart;
@@ -705,7 +736,7 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoi
         } 
         domainIndex += 1;
     }
-    if (inputMode !== "savePoint") {
+    if ((inputMode !== "savePoint") && (applyScalingMode === false)) {
         printToInfoBoxDiv("DONE !");
     }
 }
@@ -792,7 +823,6 @@ function visualizeMolecule(moleculeData, structureInformationContentProfile) {
     plugin.destroy();
     LiteMolCallback(structureInformationContentColors);
     window.plugin = LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#FFFFFF", layoutState: {hideControls: true}});
-//    window.plugin = LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#FFFFFF"});
     plugin.loadMolecule({id: pdbId, url: "https://www.ebi.ac.uk/pdbe/static/entry/" + pdbId + "_updated.cif", format: "cif"});
 }
 
@@ -895,6 +925,9 @@ function readInputSavePointFileCallback(reader, savePointFile) {
     if (Object.keys(savePoint).indexOf("selectedStructure") !== -1) {
         var domain = savePoint.selectedStructure;
         createStructureSelectionOptions([domain,]);
+        window.savePointInformationContentProfileLength = savePoint.informationContentProfile.length;
+        document.querySelector("#structureSelection").disabled = false;
+        document.querySelector("#selectStructureButton").disabled = false;
         var moleculeData = domain[0];
         printToInfoBoxDiv("Selected structure: " + moleculeData[0] + ", printing sequence alignment ...");
         var alignedSequence = domain[2];

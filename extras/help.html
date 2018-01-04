@@ -30,10 +30,10 @@
                 <p>Loading state from a save point file recreates the HMM information content profile graph, HMM structure coverage illustration, and the sequence alignment window. Optionally, the previously selected 3D structure is visualized.</p>
                 <p>It is possible to select a new structure from the HMM structure coverage illustration for information content-based mark-up when loading state from a save point file.</p>
                 <p>Some actions are disabled when loading state from a save point file. New search using a sequence or an HMM file input must be performed to have them enabled. These actions are:<ul>
-                    <li>Selection of 3D structures not included in the HMM structure coverage illustration.</li>
+                    <li>Selection of 3D structures not included in the HMM structure coverage illustration, or, optionally, the structure selected from the drop-down list of other domain hits at the time of save point file creation.</li>
                     <li>Changing the color scaling option.</li>
                     <li>Creation of new save point files.</li>
-                <ul></p>
+                </ul></p>
             </section>
             <section id="searchParametersHelpSection">
                 <h3>Search parameters</h3>
@@ -56,7 +56,7 @@
                 <p>3DPatch goes through the list of PDB chain hits, starting with the chain with the lowest assigned E-value. For each chain, domains recognized within are iterated through in the order of their proximity to the protein N-terminus, starting with the most N-terminal one.</p>
                 <p>For each domain, a list HMM positions involved in the alignment of the domain sequence to the HMM is generated. If the HMM structure coverage illustration currently contains no domains, or if the number of new (previously uncovered) HMM positions covered by the alignment of the current domain is at least <i>N</i>, then the domain is added to the HMM structure coverage illustration, and the list of HMM positions covered by 3D structures is updated. The value of <i>N</i> is currently set to 40 positions.</p>
                 <p>If a domain does not meet the condition stated above, it does not appear in the HMM structure coverage illustration. However, it can still be visualized by manually selecting it from the drop-down list of all other domain hits. Each domain in the list is characterized by the PDB chain ID, the span of chain sequence residues involved in the alignment, and the span of HMM positions covered by the alignment.</p>
-                <p><strong>Note</strong> that PDB chains are not treated equally by HMMER-web. When multiple chains have the same amino acid sequence, they would yield the same domain hits spanning the same sets of residues. Each hit returned by <i>hmmsearch</i> corresponds to a unique amino acid sequence, which can be shared by one or more PDB chains. HMMER-web uses the PDB chain ID of one of these chains as the hit's <i>accession</i> attribute. 3DPatch makes it also possible to visualize domains found in chains other than the hit's <i>accession</i>. These domains are added to the drop-down menu immediately after the corresponding domain recognized within the <i>accession</i> PDB chain had been added to the HMM structure coverage illustration or to the drop-down list. A table of <i>accession</i> PDB chains along with a comma-separated list of other PDB chains with the same sequence can be accessed from the 3DPatch website after the searches had finished. It may not be possible to display this table in some browsers when Adblock is enabled. It is not possible to select 3D structures from the drop-down menu when state is loaded from a save point file.</p>
+                <p><strong>Note</strong> that PDB chains are not treated equally by HMMER-web. When multiple chains have the same amino acid sequence, they would yield the same domain hits spanning the same sets of residues. Each target considered by <i>hmmsearch</i> corresponds to a unique amino acid sequence, which can be shared by one or more PDB chains. HMMER-web uses PDB chain ID of one of these chains as the <i>accession</i> attribute of the target sequence. 3DPatch makes it possible to also visualize domains found in chains other than the target's <i>accession</i>. These domains are added to the drop-down menu immediately after the corresponding domain recognized within the <i>accession</i> PDB chain had been added to the HMM structure coverage illustration or to the drop-down list. A table of <i>accession</i> PDB chains along with a comma-separated list of other PDB chains sharing the same amino acid sequence can be accessed from the 3DPatch website after the searches had finished. It may not be possible to display this table in some browsers when Adblock is enabled. It is not possible to select 3D structures from the drop-down menu when state is loaded from a save point file, with the exception of the structure selected at the time of save point file creation.</p>
             </section>
             <section id="colorScalingHelpSection">
                 <h3>Color scaling options</h3>
@@ -73,7 +73,6 @@
                 <h3>Misc</h3>
                 <p>It can happen that the 3DPatch process hangs when HMMER-web servers are overloaded. You may want to reload the page and repeat the search, or try again later.</p>
                 <p>The PDB sequence database used by HMMER-web may not be fully synchronized with the <a href="https://www.ebi.ac.uk/pdbe/">PDBe</a>. Newly added structures may not appear in the list of hits, and structures made obsolete recently may fail to visualize.</p>
-                <p>It is not possible to clear the LiteMol viewer once some structure had been selected. The easiest way to clear the plugin is to reapply the color scaling method.</p>
             </section>
         </main>
     </body>
