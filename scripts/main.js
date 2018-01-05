@@ -650,6 +650,9 @@ function updateSavePoint(savePoint) {
     var savePointBlob = new Blob([JSON.stringify(savePoint)], {type: "application/json"});
     var savePointAnchor = document.querySelector("#createSavePointFileAnchor");
     savePointAnchor.href = URL.createObjectURL(savePointBlob);
+    var timeAndDate = new Date();
+    var timeAndDateString = [timeAndDate.getFullYear(), timeAndDate.getMonth(), timeAndDate.getDate(), timeAndDate.getHours(), timeAndDate.getMinutes(), timeAndDate.getSeconds()].map(function (i) {return i.toString();}).join("_");
+    savePointAnchor.download = "3DPatch_savePoint_" + timeAndDateString + ".json";
 }
 
 function createStructureSelectionOptions(domains) {
