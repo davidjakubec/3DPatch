@@ -515,7 +515,7 @@ function plotInformationContentProfile(profile, yMax) {
         .attr("font-size", 14)
         .attr("text-anchor", "middle");
     svg.append("text")
-        .text("Information content (bits)")
+        .text("Information content / bits")
         .attr("transform", "translate(20, " + (chartMargin.top + (chartHeight / 2)) + ")rotate(-90)")
         .attr("font-size", 14)
         .attr("text-anchor", "middle");
@@ -578,13 +578,13 @@ function plotInformationContentColorScale(method, xMax) {
             .tickFormat(d3.format(",.2f")));
     if (method === "linear") {
         chart.append("text")
-            .text("Information content (bits)")
+            .text("Information content / bits")
             .attr("transform", "translate(" + (chartWidth / 2) + ", " + (chartHeight + 35) +")")
             .attr("font-size", 14)
             .attr("text-anchor", "middle");
     } else if (method === "exponential") {
         chart.append("text")
-            .text("exp[information content (bits)]")
+            .text("exp[information content / bits]")
             .attr("transform", "translate(" + (chartWidth / 2) + ", " + (chartHeight + 35) +")")
             .attr("font-size", 14)
             .attr("text-anchor", "middle");
@@ -733,7 +733,9 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoi
         if (Number(d3.select("#domainCoverageRect" + domainIndex).attr("width")) < 72) {
             label.attr("lengthAdjust", "spacingAndGlyphs");
             label.attr("textLength", Number(d3.select("#domainCoverageRect" + domainIndex).attr("width")) - 2);
-        } 
+        }
+        d3.select("#domainCoverageRect" + domainIndex).append("title")
+            .text(domain[0][0] + " " + domain[0][1] + "-" + domain[0][2] + " (HMM " + domain[1].hmmStart + "-" + domain[1].hmmEnd + ")");
         domainIndex += 1;
     }
     if ((inputMode !== "savePoint") && (applyScalingMode === false)) {
