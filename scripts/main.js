@@ -197,7 +197,9 @@ document.querySelector("#selectStructureButton").onclick = function() {
     var hmmEnd = domain[1].hmmEnd;
     d3.select("#selectedSequenceAlignment").remove();
     if (inputMode !== "savePoint") {
-        printToSequenceAlignmentDiv(moleculeData[0] +"\t" + "-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(savePoint.informationContentProfile.length - hmmEnd), "selectedSequenceAlignment");
+        var selectedSequenceAlignmentString = moleculeData[0] +"\t" + "-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(savePoint.informationContentProfile.length - hmmEnd);
+        selectedDomainGlobalObject.selectedSequenceAlignmentString = selectedSequenceAlignmentString;
+        printToSequenceAlignmentDiv(selectedSequenceAlignmentString, "selectedSequenceAlignment");
     } else {
         printToSequenceAlignmentDiv(moleculeData[0] +"\t" + "-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(savePointInformationContentProfileLength - hmmEnd), "selectedSequenceAlignment");
     }
@@ -641,8 +643,22 @@ function calculateDomainInformationContentProfiles(hmmInformationContentProfile,
         printToInfoBoxDiv("Plotting HMM structure coverage ...");
     }
     plotDomainCoverage(hmmInformationContentProfile.length, domainInformationContentProfiles, savePoint);
-    if ((selectedDomainGlobalObject !== undefined) && (selectedDomainGlobalObject.domainIndex !== -1)) {
-        d3.select("#domainCoverageRect" + selectedDomainGlobalObject.domainIndex).attr("fill", "springgreen");
+    if (selectedDomainGlobalObject !== undefined) {
+        if (selectedDomainGlobalObject.domainIndex !== -1) {
+            savePoint.domainIndex = selectedDomainGlobalObject.domainIndex;
+            updateSavePoint(savePoint);
+            d3.select("#domainCoverageRect" + selectedDomainGlobalObject.domainIndex).attr("fill", "springgreen");
+            var moleculeData = domainInformationContentProfiles[selectedDomainGlobalObject.domainIndex][0];
+            printToSequenceAlignmentDiv(selectedDomainGlobalObject.selectedSequenceAlignmentString, "selectedSequenceAlignment");
+            representativeMoleculemmCIFRequest(moleculeData);
+        } else {
+            var selectedStructure = otherDomains.filter(function (domain) {return ((domain[0][0] === selectedDomainGlobalObject.chainId) && (domain[0][1] === selectedDomainGlobalObject.seqStart) && (domain[0][2] === selectedDomainGlobalObject.seqEnd));})[0];
+            savePoint.selectedStructure = selectedStructure;
+            updateSavePoint(savePoint);
+            var moleculeData = selectedStructure[0];
+            printToSequenceAlignmentDiv(selectedDomainGlobalObject.selectedSequenceAlignmentString, "selectedSequenceAlignment");
+            representativeMoleculemmCIFRequest(moleculeData);
+        }
     }
 }
 
@@ -652,7 +668,7 @@ function updateSavePoint(savePoint) {
     savePointAnchor.href = URL.createObjectURL(savePointBlob);
     var timeAndDate = new Date();
     var timeAndDateString = [timeAndDate.getFullYear(), timeAndDate.getMonth(), timeAndDate.getDate(), timeAndDate.getHours(), timeAndDate.getMinutes(), timeAndDate.getSeconds()].map(function (i) {return i.toString();}).join("_");
-    savePointAnchor.download = "3DPatch_savePoint_" + timeAndDateString + ".json";
+    savePointAnchor.download = "3DPatch_" + timeAndDateString + ".json";
 }
 
 function createStructureSelectionOptions(domains) {
@@ -705,6 +721,7 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoi
             .attr("fill", "MediumSeaGreen")
             .attr("domainIndex", domainIndex)
             .on("click", function () {
+                delete savePoint.selectedStructure;
                 savePoint.domainIndex = d3.select(this).attr("domainIndex");
                 updateSavePoint(savePoint);
                 chart.selectAll("rect").attr("fill", "MediumSeaGreen");
@@ -712,16 +729,15 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoi
                 var moleculeData = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][0];
 //                console.log(moleculeData);
                 window.selectedDomainGlobalObject = new Object();
-                selectedDomainGlobalObject.chainId = moleculeData[0];
-                selectedDomainGlobalObject.seqStart = moleculeData[1];
-                selectedDomainGlobalObject.seqEnd = moleculeData[2];
                 selectedDomainGlobalObject.domainIndex = d3.select(this).attr("domainIndex");
                 printToInfoBoxDiv("Selected structure: " + moleculeData[0] + ", printing sequence alignment ...");
                 var alignedSequence = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][2];
                 var hmmStart = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][1].hmmStart;
                 var hmmEnd = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][1].hmmEnd;
                 d3.select("#selectedSequenceAlignment").remove();
-                printToSequenceAlignmentDiv(moleculeData[0] +"\t" + "-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(hmmLength - hmmEnd), "selectedSequenceAlignment");
+                var selectedSequenceAlignmentString = moleculeData[0] +"\t" + "-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(hmmLength - hmmEnd);
+                selectedDomainGlobalObject.selectedSequenceAlignmentString = selectedSequenceAlignmentString;
+                printToSequenceAlignmentDiv(selectedSequenceAlignmentString, "selectedSequenceAlignment");
                 representativeMoleculemmCIFRequest(moleculeData);
             });
         var label = chart.append("text")
