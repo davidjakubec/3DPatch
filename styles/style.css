@@ -26,6 +26,14 @@ header {
     width: 675px;
 }
 
+a {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline dotted;
+}
+
 #headerRightDiv {
     display: inline-block;
     margin-left: 105px;

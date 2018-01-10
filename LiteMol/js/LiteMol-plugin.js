@@ -1,14 +1,14 @@
 /*
  * THIS PROGRAM CONTAINS THE FOLLOWING MODIFICATIONS MADE BY ME (DAVID JAKUBEC,
      NOT A LiteMol AUTHOR):
- *   1) THE ENTIRE CODE HAS BEEN WRAPPED IN A ``LiteMolCallback'' FUNCTION,
+ *   1) THE ENTIRE CODE HAS BEEN WRAPPED IN A ``LiteMolWrapper'' FUNCTION,
  *   2) A NEW COLORING OPTION ``Information Content'' HAS BEEN ADDED,
  *   3) THE COLORING OPTION ``Information Content'' HAS BEEN MADE DEFAULT
-        FOR CARTOON VISUALIZATION STYLE.
-     4) NEW ``Default.HighlightColor'' HAS BEEN ADDED.
+        FOR CARTOON VISUALIZATION STYLE,
+     4) NEW ``Default.HighlightColor'' HAS BEEN ADDED AND SELECTED.
  */
 
-function LiteMolCallback(structureInformationContentColors) {
+function LiteMolWrapper(structureInformationContentColors) {
 
 	; var __LiteMol_Plugin = function () {
 	  'use strict';
@@ -65921,8 +65921,8 @@ function LiteMolCallback(structureInformationContentColors) {
 		(function (Theme) {
 		    var Default;
 		    (function (Default) {
-			Default.HighlightColor = { r: 1.0, g: 1.0, b: 0 };
-//			Default.HighlightColor = { r: 0.118, g: 0.529, b: 0.937 };
+//			Default.HighlightColor = { r: 1.0, g: 1.0, b: 0.0 };
+			Default.HighlightColor = { r: 1.0, g: 0.0, b: 1.0 };
 			Default.SelectionColor = { r: 171 / 255, g: 71 / 255, b: 183 / 255 }; //{ r: 1.0, g: 0.0, b: 0.0 };
 			Default.UniformColor = { r: 68 / 255, g: 130 / 255, b: 255 };
 			Default.Transparency = { alpha: 1.0, writeDepth: false };

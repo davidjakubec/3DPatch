@@ -50,10 +50,15 @@ function printToInfoBoxDiv(text, link = "", color = "black") {
     infoBoxDiv.scrollTop = infoBoxDiv.scrollHeight;
 }
 
-function printToSequenceAlignmentDiv(text, id = "") {
+function printToSequenceAlignmentDiv(text, id = "", white = true) {
     var sequenceAlignmentDiv = document.getElementById("sequenceAlignmentDiv");
     var newParagraph = document.createElement("p");
-    newParagraph.id = id;
+    if (id !== "") {
+        newParagraph.id = id;
+        if ((id === "selectedSequenceAlignment") && (white === true)) {
+            newParagraph.style.color = "white";
+        }
+    }
     var newParagraphText = document.createTextNode(text);
     newParagraph.appendChild(newParagraphText);
     sequenceAlignmentDiv.appendChild(newParagraph);
@@ -77,7 +82,7 @@ function initialize(wipeSelectedDomain = true) {
     if (window.plugin) {
         plugin.destroy();
     }
-    LiteMolCallback();
+    LiteMolWrapper();
     window.plugin = LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#FFFFFF", layoutState: {hideControls: true}});
     d3.select("#informationContentColorScaleSVG").selectAll("*").remove();
 }
@@ -203,7 +208,7 @@ document.querySelector("#selectStructureButton").onclick = function() {
     } else {
         printToSequenceAlignmentDiv(moleculeData[0] +"\t" + "-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(savePointInformationContentProfileLength - hmmEnd), "selectedSequenceAlignment");
     }
-    representativeMoleculemmCIFRequest(moleculeData);
+    moleculemmCIFRequest(moleculeData);
 }
 
 document.querySelector("#applyScalingButton").onclick = function() {
@@ -650,14 +655,14 @@ function calculateDomainInformationContentProfiles(hmmInformationContentProfile,
             d3.select("#domainCoverageRect" + selectedDomainGlobalObject.domainIndex).attr("fill", "springgreen");
             var moleculeData = domainInformationContentProfiles[selectedDomainGlobalObject.domainIndex][0];
             printToSequenceAlignmentDiv(selectedDomainGlobalObject.selectedSequenceAlignmentString, "selectedSequenceAlignment");
-            representativeMoleculemmCIFRequest(moleculeData);
+            moleculemmCIFRequest(moleculeData);
         } else {
             var selectedStructure = otherDomains.filter(function (domain) {return ((domain[0][0] === selectedDomainGlobalObject.chainId) && (domain[0][1] === selectedDomainGlobalObject.seqStart) && (domain[0][2] === selectedDomainGlobalObject.seqEnd));})[0];
             savePoint.selectedStructure = selectedStructure;
             updateSavePoint(savePoint);
             var moleculeData = selectedStructure[0];
             printToSequenceAlignmentDiv(selectedDomainGlobalObject.selectedSequenceAlignmentString, "selectedSequenceAlignment");
-            representativeMoleculemmCIFRequest(moleculeData);
+            moleculemmCIFRequest(moleculeData);
         }
     }
 }
@@ -738,7 +743,7 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoi
                 var selectedSequenceAlignmentString = moleculeData[0] +"\t" + "-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(hmmLength - hmmEnd);
                 selectedDomainGlobalObject.selectedSequenceAlignmentString = selectedSequenceAlignmentString;
                 printToSequenceAlignmentDiv(selectedSequenceAlignmentString, "selectedSequenceAlignment");
-                representativeMoleculemmCIFRequest(moleculeData);
+                moleculemmCIFRequest(moleculeData);
             });
         var label = chart.append("text")
             .text(domain[0][0])
@@ -762,33 +767,37 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoi
     }
 }
 
-function representativeMoleculemmCIFRequest(moleculeData) {
+function moleculemmCIFRequest(moleculeData) {
     var url = "https://www.ebi.ac.uk/pdbe/static/entry/" + moleculeData[0].split("_")[0] + "_updated.cif";
     var request = new XMLHttpRequest();
     request.open("GET", url, true);
-    request.onload = representativeMoleculemmCIFCallback.bind(this, request, moleculeData);
+    request.onload = moleculemmCIFCallback.bind(this, request, moleculeData);
     request.send(null);
 }
 
-function representativeMoleculemmCIFCallback(request, moleculeData) {
+function moleculemmCIFCallback(request, moleculeData) {
     var mmCIFBlocks = request.response.split(/\n#\n/).map(function (block) {return block.split("\n");});
-    var polySeqScheme = mmCIFBlocks.filter(function (block) {return ((block[0] === "loop_") && (block[1].slice(0, 21) === "_pdbx_poly_seq_scheme"));})[0];
     var structureResidueScheme = [];
+    var polySeqScheme = mmCIFBlocks.filter(function (block) {return ((block[0] === "loop_") && (block[1].slice(0, 21) === "_pdbx_poly_seq_scheme"));})[0];
     var polySeqSchemeHeaders = polySeqScheme.filter(function (line) {return line.slice(0, 21) === "_pdbx_poly_seq_scheme";}).map(function (line) {return line.trim().split(".")[1];});
     var polySeqSchemeHeadersPDBStrandIdIndex = polySeqSchemeHeaders.indexOf("pdb_strand_id");
     var polySeqSchemeHeadersPDBMonIdIndex = polySeqSchemeHeaders.indexOf("pdb_mon_id");
+    var polySeqSchemeHeadersEntityIdIndex = polySeqSchemeHeaders.indexOf("entity_id");
+    var polySeqSchemeHeadersAsymIdIndex = polySeqSchemeHeaders.indexOf("asym_id");
     var polySeqSchemeData = polySeqScheme.filter(function (line) {return ((line.slice(0, 21) !== "_pdbx_poly_seq_scheme") && (line !== "loop_"));}).map(function (line) {return line.trim().split(/\s+/g);});
     for (var line of polySeqSchemeData) {
-        structureResidueScheme.push([line[polySeqSchemeHeadersPDBStrandIdIndex], line[polySeqSchemeHeadersPDBMonIdIndex]]);
+        structureResidueScheme.push([line[polySeqSchemeHeadersPDBStrandIdIndex], line[polySeqSchemeHeadersPDBMonIdIndex], line[polySeqSchemeHeadersEntityIdIndex], line[polySeqSchemeHeadersAsymIdIndex]]);
     }
     var nonpolyScheme = mmCIFBlocks.filter(function (block) {return ((block[0] === "loop_") && (block[1].slice(0, 20) === "_pdbx_nonpoly_scheme"));})[0];
     if (nonpolyScheme !== undefined) {
         var nonpolySchemeHeaders = nonpolyScheme.filter(function (line) {return line.slice(0, 20) === "_pdbx_nonpoly_scheme";}).map(function (line) {return line.trim().split(".")[1];});
         var nonpolySchemeHeadersPDBStrandIdIndex = nonpolySchemeHeaders.indexOf("pdb_strand_id");
         var nonpolySchemeHeadersPDBMonIdIndex = nonpolySchemeHeaders.indexOf("pdb_mon_id");
+        var nonpolySchemeHeadersEntityIdIndex = nonpolySchemeHeaders.indexOf("entity_id");
+        var nonpolySchemeHeadersAsymIdIndex = nonpolySchemeHeaders.indexOf("asym_id");
         var nonpolySchemeData = nonpolyScheme.filter(function (line) {return ((line.slice(0, 20) !== "_pdbx_nonpoly_scheme") && (line !== "loop_"));}).map(function (line) {return line.trim().split(/\s+/g);});
         for (var line of nonpolySchemeData) {
-            structureResidueScheme.push([line[nonpolySchemeHeadersPDBStrandIdIndex], line[nonpolySchemeHeadersPDBMonIdIndex]]);
+            structureResidueScheme.push([line[nonpolySchemeHeadersPDBStrandIdIndex], line[nonpolySchemeHeadersPDBMonIdIndex], line[nonpolySchemeHeadersEntityIdIndex], line[nonpolySchemeHeadersAsymIdIndex]]);
         }
     }
 //    console.log(structureResidueScheme);
@@ -799,13 +808,18 @@ function representativeMoleculemmCIFCallback(request, moleculeData) {
     var structureResidueSchemeInformationContentProfile = [];
     var currentResidueIndex = 1;
     var informationContentProfileRegionResidueIndex = 0;
+    var alignmentResidueIndices = [];
     for (var residue of structureResidueScheme) {
         if (residue[0] !== informationContentProfileChainId) {
             structureResidueSchemeInformationContentProfile.push("d");
         } else {
             if ((currentResidueIndex >= informationContentProfileStart) && (currentResidueIndex <= informationContentProfileEnd)) {
-                structureResidueSchemeInformationContentProfile.push(regionInformationContentProfile[informationContentProfileRegionResidueIndex]);
+                var residueInformationContent = regionInformationContentProfile[informationContentProfileRegionResidueIndex];
+                structureResidueSchemeInformationContentProfile.push(residueInformationContent);
                 informationContentProfileRegionResidueIndex += 1;
+                if (residueInformationContent !== "i") {
+                    alignmentResidueIndices.push({residueIndex: currentResidueIndex, PDBMonId: residue[1], entityId: residue[2], asymId: residue[3]});
+                }    
             } else {
                 structureResidueSchemeInformationContentProfile.push("m");
             }
@@ -813,6 +827,7 @@ function representativeMoleculemmCIFCallback(request, moleculeData) {
         }
     }
 //    console.log(structureResidueSchemeInformationContentProfile);
+//    console.log(alignmentResidueIndices);
     var structureInformationContentProfile = [];
     for (var i = 0; i < structureResidueScheme.length; i += 1) {
         if (structureResidueScheme[i][1] !== "?") {
@@ -820,10 +835,10 @@ function representativeMoleculemmCIFCallback(request, moleculeData) {
         }
     }
 //    console.log(structureInformationContentProfile);
-    visualizeMolecule(moleculeData, structureInformationContentProfile);
+    visualizeMolecule(moleculeData, alignmentResidueIndices, structureInformationContentProfile);
 }
 
-function visualizeMolecule(moleculeData, structureInformationContentProfile) {
+function visualizeMolecule(moleculeData, alignmentResidueIndices, structureInformationContentProfile) {
 //    console.log(conservationColorScale);
     var structureInformationContentColors = ["firstEntrySkipped",];
     for (var i = 0; i < structureInformationContentProfile.length; i += 1) {
@@ -842,9 +857,66 @@ function visualizeMolecule(moleculeData, structureInformationContentProfile) {
 //    console.log(structureInformationContentColors);
     var pdbId = moleculeData[0].split("_")[0];
     plugin.destroy();
-    LiteMolCallback(structureInformationContentColors);
+    LiteMolWrapper(structureInformationContentColors);
     window.plugin = LiteMol.Plugin.create({target: "#litemol", viewportBackground: "#FFFFFF", layoutState: {hideControls: true}});
-    plugin.loadMolecule({id: pdbId, url: "https://www.ebi.ac.uk/pdbe/static/entry/" + pdbId + "_updated.cif", format: "cif"});
+    plugin.loadMolecule({id: pdbId, url: "https://www.ebi.ac.uk/pdbe/static/entry/" + pdbId + "_updated.cif", format: "cif", modelRef: "pluginMoleculeModel"});
+    var timeoutID = window.setTimeout(createAlignmentViewerBindings, 500, alignmentResidueIndices);
+}
+
+function createAlignmentViewerBindings(alignmentResidueIndices) {
+    var selectedSequenceAlignmentString = d3.select("#selectedSequenceAlignment");
+    var chainId = selectedSequenceAlignmentString.text().split("\t")[0];
+    var alignedSeq = selectedSequenceAlignmentString.text().split("\t")[1];
+    selectedSequenceAlignmentString.remove();
+    printToSequenceAlignmentDiv(chainId + "\t", "selectedSequenceAlignment", false);
+    selectedSequenceAlignmentString = undefined;
+    selectedSequenceAlignmentString = d3.select("#selectedSequenceAlignment");
+    var model = plugin.context.select("pluginMoleculeModel")[0];
+    var residueCount = 0;
+    for (var letter of alignedSeq) {
+        if (letter === "-") {
+            selectedSequenceAlignmentString.append("span")
+                .text("-");
+        } else {
+            var residueIndexAttributes = alignmentResidueIndices[residueCount];
+            var PDBMonId = residueIndexAttributes.PDBMonId;
+            if (PDBMonId === "?") {
+                selectedSequenceAlignmentString.append("span")
+                    .text(letter)
+                    .on("mouseover", function () {
+                        d3.select(this)
+                            .style("color", "white")
+                            .style("background-color", "blue");
+                    })
+                    .on("mouseout", function () {
+                        d3.select(this)
+                            .style("color", "black")
+                            .style("background-color", "white");
+                    });
+            } else {
+                selectedSequenceAlignmentString.append("span")
+                    .text(letter)
+                    .attr("residueIndex", residueIndexAttributes.residueIndex)
+                    .attr("entityId", residueIndexAttributes.entityId)
+                    .attr("asymId", residueIndexAttributes.asymId)
+                    .on("mouseover", function () {
+                        d3.select(this)
+                            .style("color", "white")
+                            .style("background-color", "magenta");
+                        var query = LiteMol.Core.Structure.Query.sequence(d3.select(this).attr("entityId"), d3.select(this).attr("asymId"), {seqNumber: d3.select(this).attr("residueIndex")}, {seqNumber: d3.select(this).attr("residueIndex")});
+                        LiteMol.Bootstrap.Command.Molecule.Highlight.dispatch(plugin.context, {model: model, query: query, isOn: true});
+                    })
+                    .on("mouseout", function () {
+                        d3.select(this)
+                            .style("color", "black")
+                            .style("background-color", "white");
+                        var query = LiteMol.Core.Structure.Query.sequence(d3.select(this).attr("entityId"), d3.select(this).attr("asymId"), {seqNumber: d3.select(this).attr("residueIndex")}, {seqNumber: d3.select(this).attr("residueIndex")});
+                        LiteMol.Bootstrap.Command.Molecule.Highlight.dispatch(plugin.context, {model: model, query: query, isOn: false});
+                    });
+            }
+            residueCount += 1;
+        }
+    }
 }
 
 /*----------------------------------------------------------------------------*/
@@ -941,7 +1013,7 @@ function readInputSavePointFileCallback(reader, savePointFile) {
         var hmmStart = savePoint.domainInformationContentProfiles[savePoint.domainIndex][1].hmmStart;
         var hmmEnd = savePoint.domainInformationContentProfiles[savePoint.domainIndex][1].hmmEnd;
         printToSequenceAlignmentDiv(moleculeData[0] + "\t" + "-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(savePoint.informationContentProfile.length - hmmEnd), "selectedSequenceAlignment");
-        representativeMoleculemmCIFRequest(moleculeData);
+        moleculemmCIFRequest(moleculeData);
     }
     if (Object.keys(savePoint).indexOf("selectedStructure") !== -1) {
         var domain = savePoint.selectedStructure;
@@ -955,7 +1027,7 @@ function readInputSavePointFileCallback(reader, savePointFile) {
         var hmmStart = domain[1].hmmStart;
         var hmmEnd = domain[1].hmmEnd;
         printToSequenceAlignmentDiv(moleculeData[0] +"\t" + "-".repeat(hmmStart - 1) + alignedSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join("") + "-".repeat(savePoint.informationContentProfile.length - hmmEnd), "selectedSequenceAlignment");
-        representativeMoleculemmCIFRequest(moleculeData);
+        moleculemmCIFRequest(moleculeData);
     }
     printToInfoBoxDiv("DONE !");
 }

@@ -17,12 +17,19 @@
                 <p>After entering a valid protein sequence and clicking the submit button, the sequence is processed by the <a href="https://www.ebi.ac.uk/Tools/hmmer/">HMMER web server</a>. There, a <i>phmmer</i> search against the <a href="http://www.uniprot.org/help/reference_proteome">UniProt reference proteomes</a> sequence library is performed. The sequence input is initially converted to an HMM featuring position-independent <a href="#searchParametersHelpSection">parameters</a>. HMMER web server performs search using this HMM to find regions of sequences from the UniProt reference proteomes similar to the original sequence input.</p>
                 <p>Multiple sequence alignment (MSA) is obtained from the set of individual alignments of significant UniProt reference proteomes sequence hits to this primitive HMM. A higher-quality HMM is built from the MSA, with parameters reflecting the frequencies of amino acid residues observed at individual positions in the MSA.</p>
                 <p>The HMM with position-specific parameters is used as an input to the <i>hmmsearch</i> program which is used to find regions of sequences corresponding to 3D structures from the <a href="https://www.ebi.ac.uk/pdbe/">Protein Data Bank (PDB)</a> similar to the original sequence input. At the same time, the information content at individual positions in the HMM is calculated using the <a href="https://skylign.org/">Skylign</a> server. If an HMM file is used as an input to 3DPatch, previous steps are skipped and the submitted HMM is used directly as an input to <i>hmmsearch</i> and Skylign.</p>
-                <p>Mapping between individual residues in the identified PDB structures and positions in the HMM is obtained from the alignment of sequences corresponding to respective 3D structures to the HMM. These alignments can be visualized in the <a href="#sequenceAlignmentHelpSection">sequence alignment</a> window. <a href="#hmmCoverageHelpSection">Coverage of HMM positions by the PDB structures</a> is illustrated using a few informative structures, and a list of other PDB structures containing a hit to the HMM is generated. Any of these structures can then be visualized with residue-level <a href="#colorScalingHelpSection">information content-based mark-up</a> using the <a href="https://webchemdev.ncbr.muni.cz/Litemol/">LiteMol</a> viewer.</p>
+                <p>Mapping between individual residues in the identified PDB structures and positions in the HMM is obtained from the alignment of sequences corresponding to respective 3D structures to the HMM. These alignments can be visualized in the <a href="#sequenceAlignmentHelpSection">sequence alignment</a> window. <a href="#hmmCoverageHelpSection">Coverage of HMM positions by the PDB structures</a> is illustrated using a few informative structures, and a list of other PDB structures containing a hit to the HMM is generated. Any of these structures can then be visualized with residue-level information content-based mark-up using the <a href="https://webchemdev.ncbr.muni.cz/Litemol/">LiteMol</a> viewer.</p>
             </section>
             <section id="inputHelpSection">
                 <h3>Input</h3>
                 <p>Input to 3DPatch can be either a single protein sequence or an HMM file. These inputs must be in formats recognized by the immediately called HMMER programs (<i>phmmer</i> or <i>hmmsearch</i>, respectively). Refer to the <a href="https://hmmer-web-docs.readthedocs.io/en/latest/searches.html">HMMER-web documentation</a> for detailed information on format requirements.</p>
                 <p>When sequence input is used, all whitespace characters are removed from the sequence before <i>phmmer</i> is called. If a header line beginning with the <span style="font-family:monospace">&gt;</span> symbol is found preceding the sequence, then the line is ignored.</p>
+            </section>
+            <section id="searchParametersHelpSection">
+                <h3>Search parameters</h3>
+                <p>All search parameters currently take on default values selected by the HMMER programs, the HMMER web server, and the Skylign server. HMMER web server default settings take precedence over those used by HMMER programs.</p>
+                <p>In the case of the sequence input route, the initial <i>phmmer</i> search against the UniProt reference proteomes uses an HMM with position-independent parameters derived from the BLOSUM62 substitution scoring matrix. In this HMM, position-independent gap opening and gap extension probabilities are set to 0.02 and 0.4, respectively.</p>
+                <p>Per-target and per-domain reporting E-value thresholds are set to 1.0 for both <i>phmmer</i> and <i>hmmsearch</i>. Per-target and per-domain inclusion (significant hit) E-value thresholds are set to 0.01 and 0.03, respectively.</p>
+                <p>No taxonomy-based filtering of hits is being performed at any stage.</p>
             </section>
             <section id="savePointHelpSection">
                 <h3>Saving and loading state</h3>
@@ -34,13 +41,6 @@
                     <li>Changing the color scaling option.</li>
                     <li>Creation of new save point files.</li>
                 </ul></p>
-            </section>
-            <section id="searchParametersHelpSection">
-                <h3>Search parameters</h3>
-                <p>All search parameters currently take on default values selected by the HMMER programs, the HMMER web server, and the Skylign server. HMMER web server default settings take precedence over those used by HMMER programs.</p>
-                <p>In the case of the sequence input route, the initial <i>phmmer</i> search against the UniProt reference proteomes uses an HMM with position-independent parameters derived from the BLOSUM62 substitution scoring matrix. In this HMM, position-independent gap opening and gap extension probabilities are set to 0.02 and 0.4, respectively.</p>
-                <p>Per-target and per-domain reporting E-value thresholds are set to 1.0 for both <i>phmmer</i> and <i>hmmsearch</i>. Per-target and per-domain inclusion (significant hit) E-value thresholds are set to 0.01 and 0.03, respectively.</p>
-                <p>No taxonomy-based filtering of hits is being performed at any stage.</p>
             </section>
             <section id="sequenceAlignmentHelpSection">
                 <h3>Sequence alignment</h3>
