@@ -144,7 +144,7 @@ function checkInputSequence(seq) {
 }
 
 document.querySelector("#exampleSequenceInputButton").onclick = function() {
-    document.querySelector("#sequenceInput").value = "MERKRGRQTYTRYQTLELEKEFHFNRYLTRRRRIEIAHALSLTERQIKIWFQNRRMKWKKEN";
+    document.querySelector("#sequenceInput").value = ">sp|P07477|TRY1_HUMAN\nMNPLLILTFVAAALAAPFDDDDKIVGGYNCEENSVPYQVSLNSGYHFCGGSLINEQWVVS\nAGHCYKSRIQVRLGEHNIEVLEGNEQFINAAKIIRHPQYDRKTLNNDIMLIKLSSRAVIN\nARVSTISLPTAPPATGTKCLISGWGNTASSGADYPDELQCLDAPVLSQAKCEASYPGKIT\nSNMFCVGFLEGGKDSCQGDSGGPVVCNGQLQGVVSWGDGCAQKNKPGVYTKVYNYVKWIK\nNTIAANS";
 }
 
 document.querySelector("#clearSequenceInputButton").onclick = function() {
@@ -327,7 +327,12 @@ function generateReferenceStructuresList(hits) {
     var referenceStructuresList = [];
     for (var hit of hits) {
         var refId = hit["acc"];
-        var isoseqIds = hit["pdbs"].filter(function (id) {return (id !== refId);}).sort();
+        var seqs = hit["seqs"];
+        if (seqs === undefined) {
+            var isoseqIds = [];
+        } else {
+            var isoseqIds = seqs.map(function (seq) {return seq["dn"];}).sort();
+        }
         isoseqGroups.set(refId, isoseqIds);
         var line = refId + "\t" + isoseqIds.join(", ");
         referenceStructuresList.push(line);
