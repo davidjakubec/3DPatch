@@ -93,10 +93,9 @@ main {
     padding: 3px;
     border: 2px solid black;
     font-family: "Roboto Mono", monospace;
-    font-size: 16px;
-    line-height: 8px;
+    font-size: 14px;
     overflow: auto;
-    white-space: pre;
+    white-space: pre-wrap;
 }
 
 #sequenceAlignmentSection {
