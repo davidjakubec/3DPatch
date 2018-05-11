@@ -23,7 +23,7 @@ header {
 
 #headerLeftDiv {
     display: inline-block;
-    width: 735px;
+    width: 760px;
 }
 
 a {
@@ -36,7 +36,7 @@ a:hover {
 
 #headerRightDiv {
     display: inline-block;
-    margin-left: 75px;
+    margin-left: 65px;
 }
 
 #headerExampleImg {

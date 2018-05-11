@@ -15,8 +15,8 @@
             <div class="headerFooterBox">
                 <div id="headerLeftDiv">
                     <h1>3DPatch</h1>
-                    <p>3DPatch is an application facilitating residue-level information content calculations, homology searches, and 3D structure conservation level-based mark-up for protein sequence or hidden Markov model (HMM) queries.</p>
-                    <p>See how it works in <a href="extras/help.html">Help</a>.</p>
+                    <p>3DPatch is an application facilitating residue-level information content calculations, homology searches, and 3D structure conservation level-based mark-up for protein sequence or profile hidden Markov model (HMM) queries.</p>
+                    <p>Find out more about 3DPatch in <a href="extras/help.html">Help</a>.</p>
                 </div>
                 <div id="headerRightDiv">
                     <img id="headerExampleImg" width="328" height="150" alt="mark-up-example" src="styles/images/header-example.png">
@@ -36,10 +36,10 @@
                         <button id="clearSequenceInputButton">Clear</button>
                         <button id="exampleSequenceInputButton">Example</button>
                     </p>
-                    <p>Or upload an HMM file</p>
+                    <p>Or upload a profile HMM file</p>
                     <p>
                         <input id="HMMInput" type="file">
-                        <button id="submitHMMButton" autocomplete="off">Submit HMM</button>
+                        <button id="submitHMMButton" autocomplete="off">Submit profile HMM</button>
                     </p>
                     <hr>
                     <h3>Load state</h3>
@@ -51,11 +51,11 @@
                     </p>
                 </section>
                 <section id="informationContentProfileSection" class="sectionBox">
-                    <h3>HMM information content profile</h3>
+                    <h3>Profile HMM information content profile</h3>
                     <svg id="informationContentProfileSVG" width="620" height="210"></svg>
                 </section>
                 <section id="domainCoverageSection" class="sectionBox">
-                    <h3>HMM structure coverage</h3>
+                    <h3>Profile HMM structure coverage</h3>
                     <p>Click on a box to view the structure<a href="extras/help.html#hmmCoverageHelpSection"><sup>[Help]</sup></a></p>
                     <svg id="domainCoverageSVG" width="620"></svg>
                     <hr>
@@ -78,7 +78,7 @@
                     <div id="sequenceAlignmentDiv"></div>
                 </section>
                 <section id="litemolSection" class="sectionBox">
-                    <h3>Viewer</h3>
+                    <h3>Structure viewer</h3>
                     <div id="litemol"></div>
                     <svg id="informationContentColorScaleSVG" width="620" height="90"></svg>
                     <hr>
