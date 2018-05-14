@@ -169,7 +169,7 @@ document.querySelector("#submitHMMButton").onclick = function() {
     disableInputButtons();
     window.inputMode = "HMM";
     var inputHMMFile = document.querySelector("#HMMInput").files[0];
-    printToInfoBoxDiv("Accepted HMM file: " + inputHMMFile.name);
+    printToInfoBoxDiv("Accepted profile HMM file: " + inputHMMFile.name);
     var reader = new FileReader();
     reader.onload = readInputHMMFileCallback.bind(this, reader, inputHMMFile);
     reader.readAsText(inputHMMFile);
@@ -205,7 +205,7 @@ document.querySelector("#selectStructureButton").onclick = function() {
     selectedDomainGlobalObject.seqStart = moleculeData[1];
     selectedDomainGlobalObject.seqEnd = moleculeData[2];
     selectedDomainGlobalObject.domainIndex = -1;
-    printToInfoBoxDiv("Selected structure: " + moleculeData[0] + ", printing the alignment");
+    printToInfoBoxDiv("Selected structure: " + moleculeData[0] + ", printing alignment");
     var alignedSequence = domain[2];
     var hmmStart = domain[1].hmmStart;
     var hmmEnd = domain[1].hmmEnd;
@@ -238,14 +238,14 @@ function phmmerRequest(seq) {
     request.open("POST", url, true);
     request.setRequestHeader("Accept", "text/html");
     request.onreadystatechange = phmmerCallback.bind(this, request);
-    printToInfoBoxDiv("Starting phmmer search against the UniProt reference proteomes");
+    printToInfoBoxDiv("Starting phmmer search against UniProt reference proteomes");
     request.send(data);
 }
 
 function phmmerCallback(request) {
     if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 200)) {
         var responseURL = request.responseURL;
-        printToInfoBoxDiv("phmmer search against the UniProt reference proteomes finished, results: ", responseURL);
+        printToInfoBoxDiv("phmmer search against UniProt reference proteomes finished, results: ", responseURL);
         var jobID = responseURL.split("/")[6];
         printToInfoBoxDiv("Checking significant hits ...");
         checkSignificantHitsRequest(jobID);
@@ -333,6 +333,7 @@ function hmmsearchCallback(request, jobID) {
 
 function generateReferenceStructuresList(hits) {
     window.isoseqGroups = new Map();
+    window.domainEvalues = new Map();
     var referenceStructuresList = [];
     for (var hit of hits) {
         var refId = hit["acc"];
@@ -345,6 +346,18 @@ function generateReferenceStructuresList(hits) {
         isoseqGroups.set(refId, isoseqIds);
         var line = refId + "\t" + isoseqIds.join(", ");
         referenceStructuresList.push(line);
+        var domains = hit["domains"];
+        for (var domain of domains) {
+            if (domain["is_reported"] === 1) {
+                var seqStart = domain["alisqfrom"].toString();
+                var seqEnd = domain["alisqto"].toString();
+                var Evalue = Number(domain["ievalue"]);
+                domainEvalues.set(refId + " " + seqStart + "-" + seqEnd, Evalue);
+                for (var isoseqId of isoseqIds) {
+                    domainEvalues.set(isoseqId + " " + seqStart + "-" + seqEnd, Evalue);
+                }
+            }
+        }
     }
     var referenceStructuresListBlob = new Blob([referenceStructuresList.join("\n")], {type: "text/plain"});
     var referenceStructuresAnchor = document.querySelector("#referenceStructuresListAnchor");
@@ -361,7 +374,7 @@ function phmmerResultsHMMRequest(resultsURL) {
     var request = new XMLHttpRequest();
     request.open("GET", url, true);
     request.onload = phmmerResultsHMMCallback.bind(this, request);
-    printToInfoBoxDiv("Requesting phmmer search results HMM");
+    printToInfoBoxDiv("Requesting phmmer search results profile HMM");
     request.send(null);
 }
 
@@ -383,7 +396,7 @@ function alignInputToHMMRequest(seq, hmm) {
     request.setRequestHeader("Accept", "text/plain");
     var hmmBlob = new Blob([hmm], {type: "text/plain"});
     request.onreadystatechange = alignInputToHMMCallback.bind(this, request, hmmBlob);
-    printToInfoBoxDiv("Aligning input sequence to the phmmer search results HMM");
+    printToInfoBoxDiv("Aligning input sequence to the phmmer search results profile HMM");
     request.send(data);
 }
 
@@ -404,14 +417,14 @@ function skylignURLRequest(file) {
     request.open("POST", url, true);
     request.setRequestHeader("Accept", "application/json");
     request.onreadystatechange = skylignURLCallback.bind(this, request);
-    printToInfoBoxDiv("Requesting HMM information content calculation");
+    printToInfoBoxDiv("Requesting profile HMM information content calculation");
     request.send(data);
 }
 
 function skylignURLCallback(request) {
     if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 200)) {
         var responseURL = JSON.parse(request.response)["url"];
-        printToInfoBoxDiv("HMM information content calculation finished, results: ", responseURL);
+        printToInfoBoxDiv("Profile HMM information content calculation finished, results: ", responseURL);
         skylignLogoRequest(responseURL);
     }
 }
@@ -442,7 +455,7 @@ function normalizeInformationContentProfileCallback(logo, informationContentProf
     var savePointObject = new Object();
     savePointObject.HMMConsensusSequence = HMMConsensusSequence;
     if (applyScalingMode === false) {
-        printToInfoBoxDiv("Printing HMM consensus sequence");
+        printToInfoBoxDiv("Printing profile HMM consensus sequence");
     }
     printSequencePositionIndices(HMMConsensusSequence.length);
     printToSequenceAlignmentDiv("CONS\t" + HMMConsensusSequence);
@@ -460,7 +473,7 @@ function normalizeInformationContentProfileCallback(logo, informationContentProf
     savePointObject.maxTheoreticalInformationContent = maxTheoreticalInformationContent;
     var maxExpTheoreticalInformationContent = Math.exp(maxTheoreticalInformationContent);
     if (applyScalingMode === false) {
-        printToInfoBoxDiv("Plotting HMM information content profile");
+        printToInfoBoxDiv("Plotting profile HMM information content profile");
     }
     plotInformationContentProfile(informationContentProfile, maxTheoreticalInformationContent);
     var normalizationMethod = document.querySelector("#scalingSelection").value;
@@ -659,7 +672,7 @@ function calculateDomainInformationContentProfiles(hmmInformationContentProfile,
     document.querySelector("#applyScalingButton").disabled = false;
     enableInputButtons();
     if (applyScalingMode === false) {
-        printToInfoBoxDiv("Plotting HMM structure coverage");
+        printToInfoBoxDiv("Plotting profile HMM structure coverage");
     }
     plotDomainCoverage(hmmInformationContentProfile.length, domainInformationContentProfiles, savePoint);
     if (selectedDomainGlobalObject !== undefined) {
@@ -690,11 +703,23 @@ function updateSavePoint(savePoint) {
     savePointAnchor.download = "3DPatch_" + timeAndDateString + ".json";
 }
 
+function evaluePictogram(evalue) {
+    if (evalue < 1e-20) {
+        return String.fromCodePoint(0x1f525);
+    } else if ((evalue >= 1e-20) && (evalue < 1e-10)) {
+        return "***";
+    } else if ((evalue >= 1e-10) && (evalue < 1e-2)) {
+        return "**";
+    } else {
+        return "*";
+    }
+}
+
 function createStructureSelectionOptions(domains) {
     var select = document.getElementById("structureSelection");
     for (var domain of domains) {
         var option = document.createElement("option");
-        option.text = domain[0][0] + " " + domain[0][1].toString() + "-" + domain[0][2].toString() + " (HMM " + domain[1].hmmStart.toString() + "-" + domain[1].hmmEnd.toString() + ")";
+        option.text = domain[0][0] + " " + domain[0][1].toString() + "-" + domain[0][2].toString() + " (HMM " + domain[1].hmmStart.toString() + "-" + domain[1].hmmEnd.toString() + ") " + evaluePictogram(domainEvalues.get(domain[0][0] + " " + domain[0][1].toString() + "-" + domain[0][2].toString()));
         option.value = JSON.stringify(domain);
         select.appendChild(option);
     }
@@ -749,7 +774,7 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoi
 //                console.log(moleculeData);
                 window.selectedDomainGlobalObject = new Object();
                 selectedDomainGlobalObject.domainIndex = d3.select(this).attr("domainIndex");
-                printToInfoBoxDiv("Selected structure: " + moleculeData[0] + ", printing the alignment");
+                printToInfoBoxDiv("Selected structure: " + moleculeData[0] + ", printing alignment");
                 var alignedSequence = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][2];
                 var hmmStart = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][1].hmmStart;
                 var hmmEnd = domainInformationContentProfiles[d3.select(this).attr("domainIndex")][1].hmmEnd;
@@ -986,7 +1011,7 @@ function HMMInputHmmsearchCallback(request, HMMFile) {
 //        console.log(HMMInputHmmsearchDomainAlignments);
         skylignURLRequest(HMMFile);
     } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 400)) {
-        printToInfoBoxDiv("ERROR: something went wrong with your search. Did you upload a valid HMM file ?", "", "red");
+        printToInfoBoxDiv("ERROR: something went wrong with your search. Did you upload a valid profile HMM file ?", "", "red");
         enableInputButtons();
         throw new Error("Something went wrong with your search. Did you upload a valid HMM file ?");
     }
@@ -1006,23 +1031,23 @@ function readInputSavePointFileCallback(reader, savePointFile) {
     printToInfoBoxDiv("Checking input save point file ...");
     checkSavePoint(savePoint);
     document.querySelector("#scalingSelection").value = savePoint.normalizationMethod;
-    printToInfoBoxDiv("Printing HMM consensus sequence");
+    printToInfoBoxDiv("Printing profile HMM consensus sequence");
     printSequencePositionIndices(savePoint.HMMConsensusSequence.length);
     printToSequenceAlignmentDiv("CONS\t" + savePoint.HMMConsensusSequence);
     if (savePoint.alignedInputSequence) {
         printToInfoBoxDiv("Printing input sequence alignment");
         printToSequenceAlignmentDiv("INPUT\t" + savePoint.alignedInputSequence.split("").filter(function (letter) {return (letter === letter.toUpperCase());}).join(""));
     }
-    printToInfoBoxDiv("Plotting HMM information content profile");
+    printToInfoBoxDiv("Plotting profile HMM information content profile");
     plotInformationContentProfile(savePoint.informationContentProfile, savePoint.maxTheoreticalInformationContent);
     plotInformationContentColorScale(savePoint.colorScalePlotParameters[0], savePoint.colorScalePlotParameters[1]);
     enableInputButtons();
-    printToInfoBoxDiv("Plotting HMM structure coverage");
+    printToInfoBoxDiv("Plotting profile HMM structure coverage");
     plotDomainCoverage(savePoint.informationContentProfile.length, savePoint.domainInformationContentProfiles, savePoint);
     if (Object.keys(savePoint).indexOf("domainIndex") !== -1) {
         d3.select("#domainCoverageRect" + savePoint.domainIndex).attr("fill", "springgreen");
         var moleculeData = savePoint.domainInformationContentProfiles[savePoint.domainIndex][0];
-        printToInfoBoxDiv("Selected structure: " + moleculeData[0] + ", printing the alignment");
+        printToInfoBoxDiv("Selected structure: " + moleculeData[0] + ", printing alignment");
         var alignedSequence = savePoint.domainInformationContentProfiles[savePoint.domainIndex][2];
         var hmmStart = savePoint.domainInformationContentProfiles[savePoint.domainIndex][1].hmmStart;
         var hmmEnd = savePoint.domainInformationContentProfiles[savePoint.domainIndex][1].hmmEnd;
@@ -1036,7 +1061,7 @@ function readInputSavePointFileCallback(reader, savePointFile) {
         document.querySelector("#structureSelection").disabled = false;
         document.querySelector("#selectStructureButton").disabled = false;
         var moleculeData = domain[0];
-        printToInfoBoxDiv("Selected structure: " + moleculeData[0] + ", printing the alignment");
+        printToInfoBoxDiv("Selected structure: " + moleculeData[0] + ", printing alignment");
         var alignedSequence = domain[2];
         var hmmStart = domain[1].hmmStart;
         var hmmEnd = domain[1].hmmEnd;
