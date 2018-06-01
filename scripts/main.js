@@ -249,8 +249,8 @@ function phmmerCallback(request) {
         var jobID = responseURL.split("/")[6];
         printToInfoBoxDiv("Checking significant hits ...");
         checkSignificantHitsRequest(jobID);
-    } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 500)) {
-        printToInfoBoxDiv("ERROR: something went wrong during phmmer search.", "", "red");
+    } else if ((request.readyState === XMLHttpRequest.DONE) && ((request.status === 500) || (request.status === 502) || (request.status === 503))) {
+        printToInfoBoxDiv("ERROR: something went wrong during phmmer search. This may occur when the HMMER web server is full. You may want to try again later.", "", "red");
         enableInputButtons();
         throw new Error("Something went wrong during phmmer search.");
     }
@@ -265,7 +265,13 @@ function checkSignificantHitsRequest(jobID) {
 }
 
 function checkSignificantHitsCallback(request, jobID) {
-    var topResultsStats = JSON.parse(request.response)["results"]["stats"];
+    try {
+        var topResultsStats = JSON.parse(request.response)["results"]["stats"];
+    } catch (e) {
+        printToInfoBoxDiv("ERROR: there was a problem with retrieving phmmer search results. This may occur when the HMMER web server is full. You may want to try again later.", "", "red");
+        enableInputButtons();
+        throw new Error("There was a problem with retrieving phmmer search results.");
+    }
     if (Number(topResultsStats["nhits"]) === 0) {
         printToInfoBoxDiv("ERROR: no hits were found using phmmer search.", "", "red");
         enableInputButtons();
@@ -324,8 +330,8 @@ function hmmsearchCallback(request, jobID) {
         phmmerResultsHMMRequest(responseURL);
     } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 400)) {
         delayedHmmsearchRequest(jobID);
-    } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 500)) {
-        printToInfoBoxDiv("ERROR: something went wrong during hmmsearch search.", "", "red");
+    } else if ((request.readyState === XMLHttpRequest.DONE) && ((request.status === 500) || (request.status === 502) || (request.status === 503))) {
+        printToInfoBoxDiv("ERROR: something went wrong during hmmsearch search. This may occur when the HMMER web server is full. You may want to try again later.", "", "red");
         enableInputButtons();
         throw new Error("Something went wrong during hmmsearch search.");
     }
@@ -365,7 +371,7 @@ function generateReferenceStructuresList(hits) {
 }
 
 function delayedHmmsearchRequest(jobID) {
-    printToInfoBoxDiv("Received status 400, trying again ...");
+    printToInfoBoxDiv("Received 400 (Bad Request), trying again ...");
     var timeoutID = window.setTimeout(hmmsearchRequest, 2000, jobID);
 }
 
@@ -544,7 +550,7 @@ function plotInformationContentProfile(profile, yMax) {
     chart.append("g")
         .call(d3.axisLeft(y));
     chart.append("text")
-        .text("HMM position")
+        .text("Profile HMM position")
         .attr("transform", "translate(" + (chartWidth / 2) + ", " + (chartHeight + 35) +")")
         .attr("font-size", 14)
         .attr("text-anchor", "middle");
@@ -719,7 +725,7 @@ function createStructureSelectionOptions(domains) {
     var select = document.getElementById("structureSelection");
     for (var domain of domains) {
         var option = document.createElement("option");
-        option.text = domain[0][0] + " " + domain[0][1].toString() + "-" + domain[0][2].toString() + " (HMM " + domain[1].hmmStart.toString() + "-" + domain[1].hmmEnd.toString() + ") " + evaluePictogram(domainEvalues.get(domain[0][0] + " " + domain[0][1].toString() + "-" + domain[0][2].toString()));
+        option.text = domain[0][0] + " " + domain[0][1].toString() + "-" + domain[0][2].toString() + " (HMM " + domain[1].hmmStart.toString() + "-" + domain[1].hmmEnd.toString() + "), ind. E-value: " + domainEvalues.get(domain[0][0] + " " + domain[0][1].toString() + "-" + domain[0][2].toString()).toString() + " " + evaluePictogram(domainEvalues.get(domain[0][0] + " " + domain[0][1].toString() + "-" + domain[0][2].toString()));
         option.value = JSON.stringify(domain);
         select.appendChild(option);
     }
@@ -746,7 +752,7 @@ function plotDomainCoverage(hmmLength, domainInformationContentProfiles, savePoi
         .attr("transform", "translate(0, " + chartHeight + ")")
         .call(d3.axisBottom(x));
     chart.append("text")
-        .text("HMM position")
+        .text("Profile HMM position")
         .attr("transform", "translate(" + (chartWidth / 2) + ", " + (chartHeight + 35) +")")
         .attr("font-size", 14)
         .attr("text-anchor", "middle");
