@@ -253,6 +253,10 @@ function phmmerCallback(request) {
         printToInfoBoxDiv("ERROR: something went wrong during phmmer search. This may occur when the HMMER web server is full. You may want to try again later.", "", "red");
         enableInputButtons();
         throw new Error("Something went wrong during phmmer search.");
+    } else if ((request.readyState === XMLHttpRequest.DONE) && (request.status === 400)) {
+        printToInfoBoxDiv("ERROR: something went wrong during phmmer search. This may occur when your input sequence length exceeds HMMER web server limitations. Visit the HMMER web server site to see current limits.", "", "red");
+        enableInputButtons();
+        throw new Error("Something went wrong during phmmer search.");
     }
 }
 
